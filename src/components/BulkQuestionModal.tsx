@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Type, CheckCircle2, List } from "lucide-react";
+import { X, Type, CheckCircle2 } from "lucide-react";
 import type { QuestionType } from "../types/forms";
 
 interface BulkQuestionModalProps {
