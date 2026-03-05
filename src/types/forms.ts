@@ -10,6 +10,7 @@ export interface OpcionMultiple {
 }
 
 export interface CeldaTabular {
+  tipo: string;
   id: string;
   variable: string;
   columnaIndex?: number;

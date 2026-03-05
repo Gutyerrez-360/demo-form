@@ -346,6 +346,7 @@ function FormBuilder() {
           id: crypto.randomUUID(),
           variable: "",
           columnaIndex: celdas.length,
+          tipo: "",
         });
       }
 
@@ -650,18 +651,21 @@ function FormBuilder() {
               {/* Header de la sección */}
               <div className="px-8 py-6 flex justify-between items-center gap-4">
                 {/* Input nombre sección */}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
+                  <label className="text-sm font-bold text-black mb-1">
+                    Título de la sección
+                  </label>
                   <input
                     type="text"
                     value={seccion.nombre}
+                    placeholder="Agregue un titulo para esta seccion"
                     onChange={(e) => updateSeccion(seccion.id, e.target.value)}
-                    style={{ width: `${seccion.nombre.length + 2}ch` }}
-                    className="text-2xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
+                    className="w-full text-2xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
                   />
                 </div>
 
                 {/* Acciones */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0 pt-5">
                   {pagina.secciones.length > 1 && (
                     <button
                       onClick={(e) => {

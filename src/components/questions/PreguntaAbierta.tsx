@@ -41,25 +41,33 @@ function PreguntaAbiert({
     });
   };
   return (
-    <div className="p-6 bg-white border-2 border-blue-200 rounded-xl">
+    <div className="p-6 bg-white border-2 border-gray-200 rounded-xl">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <input
-            type="text"
-            value={pregunta.titulo}
-            onChange={(e) => onUpdate({ ...pregunta, titulo: e.target.value })}
-            placeholder="Título de la pregunta"
-            className="w-full text-lg font-bold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-blue-500 outline-none pb-2 transition-colors"
-          />
+          <label className="pt-0 font-bold">Titulo de la pregunta</label>
+          <div className="pt-2">
+            <textarea
+              value={pregunta.titulo || ""}
+              onChange={(e) =>
+                onUpdate({ ...pregunta, titulo: e.target.value })
+              }
+              placeholder="Aqui ira la pregunta a realizar"
+              className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none h-12 text-gray-700"
+            />
+          </div>
         </div>
       </div>
-
-      <textarea
-        value={pregunta.descripcion || ""}
-        onChange={(e) => onUpdate({ ...pregunta, descripcion: e.target.value })}
-        placeholder="Descripción opcional"
-        className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none h-12 text-gray-700"
-      />
+      <div className="flex-1 pt-0">
+        <label className="pt-0 font-bold">Codificación de la pregunta</label>
+        <textarea
+          value={pregunta.descripcion || ""}
+          onChange={(e) =>
+            onUpdate({ ...pregunta, descripcion: e.target.value })
+          }
+          placeholder="Deberá colocar el codigo que representa a la pregunta o una descripción, Ej: PRG12_001 ó La finalidad de la pregunta..."
+          className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none h-12 text-gray-700"
+        />
+      </div>
 
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
         <label className="text-sm font-semibold text-gray-700 block mb-2">
@@ -68,7 +76,7 @@ function PreguntaAbiert({
         <textarea
           value={pregunta.respuesta || ""}
           onChange={(e) => onUpdate({ ...pregunta, respuesta: e.target.value })}
-          placeholder="Escribe la respuesta aquí..."
+          placeholder="Este sera un ejemplo de una posible respuesta de la pregunta realizada"
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none h-24 text-gray-700"
         />
       </div>
