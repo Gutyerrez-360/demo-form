@@ -279,6 +279,143 @@ function PreguntaTabularComp({
         </div>
       </div>
 
+      <div className="mb-6 rounded-lg">
+        <label className="text-sm font-semibold text-gray-700 block mb-3">
+          Configuración dinámica
+        </label>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+          {/* SWITCH */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-2">
+              Tipo
+            </label>
+
+            <button
+              onClick={() =>
+                onUpdate({
+                  ...pregunta,
+                  modo: pregunta.modo === "dinamico" ? "estatico" : "dinamico",
+                })
+              }
+              className={`relative w-28 h-10 rounded-full transition-colors border ${
+                pregunta.modo === "dinamico"
+                  ? "bg-black text-white"
+                  : "bg-white text-black"
+              } flex items-center justify-between px-2`}
+            >
+              {/* Texto izquierdo */}
+              <span
+                className={`absolute left-2 text-sm font-semibold transition-opacity ${
+                  pregunta.modo === "dinamico" ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                Dinámico
+              </span>
+
+              {/* Texto derecho */}
+              <span
+                className={`absolute right-2 text-sm font-semibold transition-opacity ${
+                  pregunta.modo === "dinamico" ? "opacity-0" : "opacity-100"
+                }`}
+              >
+                Estático
+              </span>
+
+              {/* Circulo */}
+              <div
+                className={`w-8 h-8 rounded-full shadow transition-transform ${
+                  pregunta.modo === "dinamico"
+                    ? "translate-x-16 bg-white"
+                    : "bg-black"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* CODIGO */}
+          <div className="flex flex-col relative group">
+            <label className="text-sm font-medium text-gray-700 mb-2">
+              Código
+            </label>
+
+            <input
+              type="text"
+              disabled={pregunta.modo != "dinamico"}
+              value={pregunta.codigo || ""}
+              onChange={(e) =>
+                onUpdate({
+                  ...pregunta,
+                  codigo: e.target.value,
+                })
+              }
+              placeholder="Ej: PRG12_01"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none h-10 text-gray-700 ${
+                pregunta.modo === "dinamico"
+                  ? "bg-white"
+                  : " bg-gray-200 cursor-not-allowed text-gray-500"
+              }`}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+
+            {/* Tooltip amigable */}
+            {pregunta.modo === "dinamico" ? (
+              <div className="absolute left-0 -bottom-16 w-64 bg-gray-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                Si tu pregunta es <strong>dinámica</strong> (depende de otra
+                pregunta que se repetirá varias veces), coloca aquí el código de
+                esa pregunta.
+              </div>
+            ) : (
+              ""
+            )}
+          </div>
+
+          {/* REPETICIONES */}
+          <div className="flex flex-col relative group">
+            <label className="text-sm font-medium text-gray-700 mb-2">
+              Número de repeticiones
+            </label>
+
+            <input
+              type="number"
+              min={1}
+              max={100}
+              disabled={pregunta.modo !== "dinamico"}
+              value={pregunta.repeticiones ?? ""}
+              onFocus={(e) => e.currentTarget.select()}
+              onKeyDown={(e) => {
+                // Evitar euler, signos y punto
+                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                let value = Number(e.target.value);
+                if (value > 100) value = 100;
+                onUpdate({
+                  ...pregunta,
+                  repeticiones: isNaN(value) ? 0 : value,
+                });
+              }}
+              placeholder="Ej: 5"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none h-10 text-gray-700 ${
+                pregunta.modo !== "dinamico"
+                  ? "bg-gray-200 cursor-not-allowed text-gray-500"
+                  : "bg-white"
+              }`}
+            />
+
+            {/* Tooltip amigable */}
+            {pregunta.modo === "dinamico" && (
+              <div className="absolute left-0 -bottom-16 w-64 bg-gray-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                Ingresa cuántas veces se repetirá esta pregunta dinámica. Máximo
+                100.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="mb-4 p-4 pt-2 bg-gray-100 rounded-lg border border-gray-50">
         <label className="text-sm font-semibold text-gray-700 block mb-3">
           Títulos de columnas:
@@ -373,7 +510,7 @@ function PreguntaTabularComp({
                             ? `Pregunta ${filaIdx + 1}`
                             : `Variables ${filaIdx + 1}`
                         }
-                        className={`w-full px-3 py-2 pr-7 outline-none text-xs ${celdaIdx === 0 ? "font-semibold" : ""} ${celda.tipo === "etiqueta" ? "text-gray-400 cursor-not-allowed bg-gray-200 opacity-70" : "text-gray-700 bg-transparent"} ${activeCell?.filaId === fila.id && activeCell?.celdaIdx === celdaIdx ? (celda.tipo === "etiqueta" ? "bg-blue-300" : "bg-blue-200") : ""}`}
+                        className={`w-full px-3 py-3 pr-7 outline-none text-md min-h-9.5 ${celdaIdx === 0 ? "font-semibold" : ""} ${celda.tipo === "etiqueta" ? "text-gray-400 cursor-not-allowed bg-gray-200 opacity-70" : "text-gray-700 bg-transparent"} ${activeCell?.filaId === fila.id && activeCell?.celdaIdx === celdaIdx ? (celda.tipo === "etiqueta" ? "bg-blue-300" : "bg-blue-200") : ""}`}
                         ref={(el) => {
                           inputRefs.current[`${filaIdx}-${celdaIdx}`] = el;
                         }}

@@ -708,10 +708,14 @@ function FormBuilder() {
                       <div className="flex items-center rounded-md overflow-hidden">
                         {/* Input + botón de 3 puntos */}
                         <div className="flex items-center flex-1">
-                          <div className="w-25">
+                          <div className="w-60">
+                            <label className="text-sm font-bold text-black mb-1">
+                              Título del grupo
+                            </label>
                             <input
                               type="text"
                               value={grupo.nombre}
+                              placeholder="Agregue un titulo para esta seccion"
                               onChange={(e) =>
                                 updateGrupo(
                                   seccion.id,
@@ -719,10 +723,10 @@ function FormBuilder() {
                                   e.target.value,
                                 )
                               }
-                              className="text-xl font-bold text-gray-800 px-3 py-1 focus:outline-none focus:ring-blue-500"
+                              className="w-full text-xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none pt"
                             />
                           </div>
-                          <div className="relative">
+                          <div className="relative pt-6">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -781,7 +785,7 @@ function FormBuilder() {
 
                       {/* Contenido colapsable del grupo */}
                       {openGroups[seccion.id]?.[grupo.id] && (
-                        <div className="px-6 pb-6 space-y-2 pt-0">
+                        <div className="px-6 pb-6 space-y-2 pt-2">
                           <div className="space-y-4 mb-6">
                             {grupo.preguntas.map((pregunta) =>
                               renderPregunta(pregunta, seccion.id, grupo.id),

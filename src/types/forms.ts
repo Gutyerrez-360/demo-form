@@ -30,6 +30,10 @@ export interface PreguntaTabular {
   numColumnas: number;
   encabezadoColumnas?: string[];
   filas: FilaTabular[];
+
+  modo?: "dinamico" | "estatico";
+  codigo?: string;
+  repeticiones?: number;
 }
 
 export interface PreguntaAbierta {
