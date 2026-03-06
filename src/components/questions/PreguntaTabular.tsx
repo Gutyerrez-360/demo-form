@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { PreguntaTabular } from "../../types/forms";
 import { Trash2, ChevronDown } from "lucide-react";
+import { createPortal } from "react-dom";
 
 //modal component
 import ConfirmDeleteModal from "../notifications/ConfirmDeleteModal";
@@ -17,6 +18,15 @@ function PreguntaTabularComp({
   onDelete,
 }: PreguntaTabularProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  // guardamos la posicion de la tabla al hacer clic dentro de la celda
+  //y guardamos la celda activa
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [activeCell, setActiveCell] = useState<{
+    filaId: string;
+    celdaIdx: number;
+  } | null>(null);
 
   const updateFila = (filaId: string, celda: number, valor: string) => {
     onUpdate({
@@ -85,6 +95,86 @@ function PreguntaTabularComp({
             }
           : fila,
       ),
+    });
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenu(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  //  esta logica solo funciona para esta tabla
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    filaIdx: number,
+    celdaIdx: number,
+  ) => {
+    const numFilas = pregunta.filas.length;
+    const numColumnas = pregunta.numColumnas;
+
+    let nextFila = filaIdx;
+    let nextCelda = celdaIdx;
+
+    switch (e.key) {
+      case "ArrowRight":
+        nextCelda = celdaIdx + 1 < numColumnas ? celdaIdx + 1 : celdaIdx;
+        break;
+      case "ArrowLeft":
+        nextCelda = celdaIdx - 1 >= 0 ? celdaIdx - 1 : celdaIdx;
+        break;
+      case "ArrowDown":
+        nextFila = filaIdx + 1 < numFilas ? filaIdx + 1 : filaIdx;
+        break;
+      case "ArrowUp":
+        nextFila = filaIdx - 1 >= 0 ? filaIdx - 1 : filaIdx;
+        break;
+      case "Tab":
+        e.preventDefault();
+        if (e.shiftKey) {
+          if (celdaIdx > 0) nextCelda = celdaIdx - 1;
+          else if (filaIdx > 0) {
+            nextFila = filaIdx - 1;
+            nextCelda = numColumnas - 1;
+          }
+        } else {
+          if (celdaIdx < numColumnas - 1) nextCelda = celdaIdx + 1;
+          else if (filaIdx < numFilas - 1) {
+            nextFila = filaIdx + 1;
+            nextCelda = 0;
+          }
+        }
+        break;
+      default:
+        return;
+    }
+
+    const nextKey = `${nextFila}-${nextCelda}`;
+    const nextInput = inputRefs.current[nextKey];
+
+    // Saltar celdas deshabilitadas
+    if (nextInput?.disabled) {
+      handleKeyDown(e as any, nextFila, nextCelda);
+      return;
+    }
+
+    nextInput?.focus();
+
+    requestAnimationFrame(() => {
+      nextInput?.select();
+    });
+
+    setActiveCell({
+      filaId: pregunta.filas[nextFila].id,
+      celdaIdx: nextCelda,
     });
   };
 
@@ -252,11 +342,22 @@ function PreguntaTabularComp({
                   <td
                     key={celda.id}
                     className={`p-0 border border-gray-400 ${
-                      celdaIdx === 0 ? "bg-gray-300 font-semibold" : ""
+                      celdaIdx === 0
+                        ? ` ${
+                            activeCell?.filaId === fila.id &&
+                            activeCell?.celdaIdx === celdaIdx
+                              ? "bg-blue-200" // color de celda activa
+                              : ""
+                          } font-semibold`
+                        : ""
+                    } ${
+                      activeCell?.filaId === fila.id &&
+                      activeCell?.celdaIdx === celdaIdx
+                        ? "bg-blue-200" // color de celda activa
+                        : ""
                     }`}
                   >
                     <div className="relative flex items-center">
-                      {/* INPUT */}
                       <input
                         type="text"
                         value={celda.variable}
@@ -264,50 +365,42 @@ function PreguntaTabularComp({
                         onChange={(e) =>
                           updateFila(fila.id, celdaIdx, e.target.value)
                         }
+                        onFocus={(e) => {
+                          requestAnimationFrame(() => e.target.select());
+                        }}
                         placeholder={
                           celdaIdx === 0
                             ? `Pregunta ${filaIdx + 1}`
                             : `Variables ${filaIdx + 1}`
                         }
-                        className={`w-full px-3 py-2 pr-7 bg-transparent outline-none text-gray-700 text-xs ${
-                          celdaIdx === 0 ? "font-semibold" : ""
-                        } ${celda.tipo === "etiqueta" ? "text-gray-400 cursor-not-allowed" : ""}`}
+                        className={`w-full px-3 py-2 pr-7 outline-none text-xs ${celdaIdx === 0 ? "font-semibold" : ""} ${celda.tipo === "etiqueta" ? "text-gray-400 cursor-not-allowed bg-gray-200 opacity-70" : "text-gray-700 bg-transparent"} ${activeCell?.filaId === fila.id && activeCell?.celdaIdx === celdaIdx ? (celda.tipo === "etiqueta" ? "bg-blue-300" : "bg-blue-200") : ""}`}
+                        ref={(el) => {
+                          inputRefs.current[`${filaIdx}-${celdaIdx}`] = el;
+                        }}
+                        onKeyDown={(e) => handleKeyDown(e, filaIdx, celdaIdx)}
                       />
 
                       {/* ICONO */}
                       <button
-                        onClick={() =>
-                          setOpenMenu(openMenu === celda.id ? null : celda.id)
-                        }
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+
+                          setMenuPosition({
+                            x: rect.left,
+                            y: rect.bottom,
+                          });
+
+                          setActiveCell({
+                            filaId: fila.id,
+                            celdaIdx: celdaIdx,
+                          });
+
+                          setOpenMenu(openMenu === celda.id ? null : celda.id);
+                        }}
                         className="absolute right-1 p-1 hover:bg-gray-200 rounded"
                       >
                         <ChevronDown size={14} />
                       </button>
-
-                      {/* MENU */}
-                      {openMenu === celda.id && (
-                        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-300 rounded shadow-md text-xs z-100">
-                          <button
-                            className="block px-3 py-1 hover:bg-gray-100 w-full text-left"
-                            onClick={() => {
-                              updateTipoCelda(fila.id, celdaIdx, "variable");
-                              setOpenMenu(null);
-                            }}
-                          >
-                            Variable
-                          </button>
-
-                          <button
-                            className="block px-3 py-1 hover:bg-gray-100 w-full text-left"
-                            onClick={() => {
-                              updateTipoCelda(fila.id, celdaIdx, "etiqueta");
-                              setOpenMenu(null);
-                            }}
-                          >
-                            Etiqueta
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </td>
                 ))}
@@ -316,6 +409,51 @@ function PreguntaTabularComp({
           </tbody>
         </table>
       </div>
+      {openMenu &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              top: menuPosition.y + 4,
+              left: menuPosition.x,
+            }}
+            className="bg-white border border-gray-300 rounded-xl shadow-xl text-sm z-50 w-36"
+          >
+            <button
+              className="block px-4 py-2 hover:bg-gray-100 w-full text-left rounded-t-xl"
+              onClick={() => {
+                if (activeCell) {
+                  updateTipoCelda(
+                    activeCell.filaId,
+                    activeCell.celdaIdx,
+                    "variable",
+                  );
+                }
+                setOpenMenu(null);
+              }}
+            >
+              Variable
+            </button>
+
+            <button
+              className="block px-4 py-2 hover:bg-gray-100 w-full text-left rounded-b-xl"
+              onClick={() => {
+                if (activeCell) {
+                  updateTipoCelda(
+                    activeCell.filaId,
+                    activeCell.celdaIdx,
+                    "etiqueta",
+                  );
+                }
+                setOpenMenu(null);
+              }}
+            >
+              Etiqueta
+            </button>
+          </div>,
+          document.body,
+        )}
 
       <div className="mt-2 flex items-center justify-between pt-4">
         {/* Texto a la izquierda */}
