@@ -31,9 +31,9 @@ export interface PreguntaTabular {
   encabezadoColumnas?: string[];
   filas: FilaTabular[];
 
-  modo?: "dinamico" | "estatico";
-  codigo?: string;
-  repeticiones?: number;
+  modo: "dinamico" | "estatico";
+  codigo: string | "";
+  repeticiones: number | 0;
 }
 
 export interface PreguntaAbierta {

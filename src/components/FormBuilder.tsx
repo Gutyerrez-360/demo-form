@@ -293,7 +293,6 @@ function FormBuilder() {
           encabezadoColumnas,
           filas,
         } as PreguntaTabular;
-
         break;
 
       default:
@@ -368,6 +367,7 @@ function FormBuilder() {
       filas,
     };
   };
+
   const updatePregunta = (
     seccionId: string,
     grupoId: string,
@@ -530,14 +530,15 @@ function FormBuilder() {
           {...baseProps}
         />
       );
-    if (pregunta.tipo === "tabular")
-      return (
-        <PreguntaTabularComp
-          key={pregunta.id}
-          pregunta={pregunta}
-          {...baseProps}
-        />
-      );
+    if (pregunta.tipo === "tabular") console.log(pregunta);
+
+    return (
+      <PreguntaTabularComp
+        key={pregunta.id}
+        pregunta={pregunta}
+        {...baseProps}
+      />
+    );
 
     return null;
   };
@@ -736,7 +737,7 @@ function FormBuilder() {
                                     : grupo.id,
                                 );
                               }}
-                              className="p-2 hover:bg-gray-200 transition bg-white"
+                              className="p-2 hover:bg-gray-200 transition bg-white rounded-xl"
                             >
                               <MoreVertical size={20} />
                             </button>
@@ -749,7 +750,7 @@ function FormBuilder() {
                                 className="fixed inset-0 z-40"
                                 onClick={() => setMenuGrupoAbierto(null)}
                               />
-                              <div className="absolute top-full mt-1 left-25 rounded-lg shadow-lg z-50">
+                              <div className="absolute top-15 mt-1 left-65 rounded-lg shadow-lg z-50">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();

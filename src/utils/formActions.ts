@@ -1,8 +1,7 @@
 import * as XLSX from "xlsx";
 
-export function guardarFormularioBackend(data: any) {
+export function guardarFormularioBackend(_data: any) {
   alert("informacion procesada lista para enviar");
-  console.log(data);
 
   // Simulación POST al backend -- esto no debe ser asi en la nueva version
   /*return fetch('/api/formulario', {
