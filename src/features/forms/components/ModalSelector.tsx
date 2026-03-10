@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import type { SelectorModalProps } from "../types/FormTypes";
 
+// navegacion
+import { useNavigate } from "react-router";
+
 // ─── Mock data (reemplazar por fetch real)
 const fetchFormularios = async () => [
   { id: "1", nombre: "Formulario de Calidad A" },
@@ -33,6 +36,9 @@ export default function SelectorModal({
   const [loadingSecciones, setLoadingSecciones] = useState(false);
   const [openFormList, setOpenFormList] = useState(false);
   const [openSecList, setOpenSecList] = useState(false);
+
+  // navigaciones
+  const navigate = useNavigate();
 
   // Cargar formularios al abrir
   useEffect(() => {
@@ -66,8 +72,7 @@ export default function SelectorModal({
   };
 
   const handleCrear = () => {
-    console.log("Navegar a /formularios/nuevo");
-    // navigate("/formularios/nuevo")
+    navigate("/form/builder");
     handleClose();
   };
 
