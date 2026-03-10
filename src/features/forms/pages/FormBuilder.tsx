@@ -732,6 +732,7 @@ function FormBuilder() {
 
                               <div className="relative">
                                 <button
+                                  id={`menu-btn-${grupo.id}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setMenuGrupoAbierto(
@@ -752,8 +753,31 @@ function FormBuilder() {
                                       className="fixed inset-0 z-40"
                                       onClick={() => setMenuGrupoAbierto(null)}
                                     />
-
-                                    <div className="absolute right-0 mt-2 bg-white rounded-lg shadow-lg z-50">
+                                    <div
+                                      className="fixed z-50 mt-1 bg-white rounded-lg shadow-xl border border-gray-100"
+                                      style={{
+                                        top: (() => {
+                                          const btn = document.getElementById(
+                                            `menu-btn-${grupo.id}`,
+                                          );
+                                          if (!btn) return 0;
+                                          return (
+                                            btn.getBoundingClientRect().bottom +
+                                            4
+                                          );
+                                        })(),
+                                        right:
+                                          window.innerWidth -
+                                          (() => {
+                                            const btn = document.getElementById(
+                                              `menu-btn-${grupo.id}`,
+                                            );
+                                            if (!btn) return 0;
+                                            return btn.getBoundingClientRect()
+                                              .right;
+                                          })(),
+                                      }}
+                                    >
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -765,7 +789,7 @@ function FormBuilder() {
                                           );
                                           setMenuGrupoAbierto(null);
                                         }}
-                                        className="flex items-center gap-2 px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors border-2 bg-[#FFCFCF]"
+                                        className="flex items-center px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors ml-0 w-full sm:w-auto justify-center border-2 bg-[#FFCFCF]"
                                       >
                                         <Trash2 size={18} />
                                         Eliminar grupo

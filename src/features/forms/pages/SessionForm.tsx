@@ -24,8 +24,8 @@ export default function SessionForm() {
     <div className="min-h-screen bg-[#EEEEF0] flex items-center justify-center p-2 sm:p-6">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-sm overflow-hidden">
         {/* Imagen ilustrativa */}
-        <div className="w-full bg-[#F5F5F7] flex items-center justify-center py-6 px-6">
-          <div className="w-full h-30 rounded-xl bg-[#E8E8EC] flex items-center justify-center text-gray-400 text-xs tracking-wide">
+        <div className="w-full pt-7 rounded-2xl bg-[#F5F5F7] flex items-center justify-center py-6 px-6">
+          <div className="w-100 h-30 rounded-xl bg-[#ced0d2] flex items-center justify-center text-gray-400 text-xs tracking-wide px-10 relative z-10">
             <img src="/assets/img/home.png" alt="Imagen bienvenida" />
           </div>
         </div>
