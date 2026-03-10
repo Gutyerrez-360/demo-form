@@ -1,4 +1,0 @@
-En esta seccion se colocan todo el tema de las 
-    - Imagenes
-    - icons
-    - fuentes/fonts

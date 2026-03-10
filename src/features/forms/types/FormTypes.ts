@@ -1,17 +1,21 @@
-type Option = "formularios" | "secciones" | null;
+export type ItemLista = { id: string; nombre: string };
+
+export type SubmitData =
+  | { accion: "editar"; formulario: ItemLista }
+  | { accion: "editar-seccion"; formulario: ItemLista; seccion: ItemLista };
+
+export type SelectorModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  mode: "formularios" | "secciones" | null;
+  onSubmit: (data: SubmitData) => void;
+};
 
 export interface UserFormData {
   correo: string;
   nombre: string;
   cargo: string;
   codigo: string;
-}
-
-export interface SelectorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  mode: Option;
-  onSubmit: (data: UserFormData) => void;
 }
 
 export type QuestionType =

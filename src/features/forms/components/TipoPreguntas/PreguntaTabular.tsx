@@ -117,12 +117,12 @@ function PreguntaTabularComp({
       </div>
 
       {/* Número de filas / columnas */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="text-sm font-semibold text-gray-700 block mb-2">
+      <div className="flex flex-row justify-center gap-6 mb-6">
+        <div className="flex flex-col items-center w-32.5">
+          <label className="text-sm font-bold text-gray-700 block mb-2 text-center w-full">
             Número de filas:
           </label>
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500">
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500 w-full max-w-[140px]">
             <button
               type="button"
               onClick={() => {
@@ -143,11 +143,11 @@ function PreguntaTabularComp({
                 });
                 onUpdate({ ...pregunta, numFilas: nuevo, filas });
               }}
-              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+              className="px-3 py-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-lg font-bold select-none shrink-0"
             >
-              ‹
+              −
             </button>
-            <span className="flex-1 text-center text-gray-700 font-medium py-3 text-base">
+            <span className="flex-1 text-center text-gray-700 font-medium py-2 text-sm tabular-nums">
               {pregunta.numFilas || 1}
             </span>
             <button
@@ -174,18 +174,18 @@ function PreguntaTabularComp({
                 });
                 onUpdate({ ...pregunta, numFilas: nuevo, filas });
               }}
-              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+              className="px-3 py-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-lg font-bold select-none shrink-0"
             >
-              ›
+              +
             </button>
           </div>
         </div>
 
-        <div>
-          <label className="text-sm font-semibold text-gray-700 block mb-2">
+        <div className="flex flex-col items-center">
+          <label className="text-sm font-bold text-gray-700 block mb-2 text-center w-full">
             Número de columnas:
           </label>
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500">
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500 w-full max-w-[140px]">
             <button
               type="button"
               onClick={() => {
@@ -204,11 +204,11 @@ function PreguntaTabularComp({
                 }));
                 onUpdate({ ...pregunta, numColumnas: nuevo, filas });
               }}
-              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+              className="px-3 py-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-lg font-bold select-none shrink-0"
             >
-              ‹
+              −
             </button>
-            <span className="flex-1 text-center text-gray-700 font-medium py-3 text-base">
+            <span className="flex-1 text-center text-gray-700 font-medium py-2 text-sm tabular-nums">
               {pregunta.numColumnas || 1}
             </span>
             <button
@@ -233,9 +233,9 @@ function PreguntaTabularComp({
                 }));
                 onUpdate({ ...pregunta, numColumnas: nuevo, filas });
               }}
-              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+              className="px-3 py-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-lg font-bold select-none shrink-0"
             >
-              ›
+              +
             </button>
           </div>
         </div>

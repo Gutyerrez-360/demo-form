@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 
 //pages
-import FormBuilder from "./features/forms/pages/FormBuilder";
+import SessionForm from "./features/forms/pages/SessionForm";
 import FormsRouter from "./app/route/formsRoutes";
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
       <Routes>
         <Route>
           {/* Another children routes */}
-          <Route index path="/" element={<FormBuilder />} />
+          <Route index path="/" element={<SessionForm />} />
           {FormsRouter}
         </Route>
       </Routes>

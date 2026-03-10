@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FileText, FilePen } from "lucide-react";
 import SelectorModal from "../components/ModalSelector";
-import type { UserFormData } from "../types/FormTypes";
+import type { SubmitData } from "../types/FormTypes";
 
 type Option = "formularios" | "secciones" | null;
 
@@ -13,7 +13,7 @@ export default function ActionSelector() {
     if (selected) setModalOpen(true);
   };
 
-  const handleSubmit = (data: UserFormData) => {
+  const handleSubmit = (data: SubmitData) => {
     console.log("Submitted:", { mode: selected, ...data });
     setModalOpen(false);
   };
