@@ -122,65 +122,122 @@ function PreguntaTabularComp({
           <label className="text-sm font-semibold text-gray-700 block mb-2">
             Número de filas:
           </label>
-          <input
-            type="number"
-            min="1"
-            max="50"
-            value={pregunta.numFilas === 0 ? "" : pregunta.numFilas}
-            onFocus={(e) => e.currentTarget.select()}
-            onClick={(e) => e.currentTarget.select()}
-            onChange={(e) => {
-              const nuevo = Math.min(parseInt(e.target.value) || 1, 50);
-              if (parseInt(e.target.value) > 50)
-                alert("El número máximo permitido es 50");
-              const filas = Array.from({ length: nuevo }, (_, i) => {
-                if (pregunta.filas[i]) return pregunta.filas[i];
-                return {
-                  id: crypto.randomUUID(),
-                  celdas: Array.from({ length: pregunta.numColumnas }, () => ({
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500">
+            <button
+              type="button"
+              onClick={() => {
+                const nuevo = Math.max((pregunta.numFilas || 1) - 1, 1);
+                const filas = Array.from({ length: nuevo }, (_, i) => {
+                  if (pregunta.filas[i]) return pregunta.filas[i];
+                  return {
                     id: crypto.randomUUID(),
-                    variable: "",
-                    tipo: "variable" as const,
-                  })),
-                };
-              });
-              onUpdate({ ...pregunta, numFilas: nuevo, filas });
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-gray-700"
-          />
+                    celdas: Array.from(
+                      { length: pregunta.numColumnas },
+                      () => ({
+                        id: crypto.randomUUID(),
+                        variable: "",
+                        tipo: "variable" as const,
+                      }),
+                    ),
+                  };
+                });
+                onUpdate({ ...pregunta, numFilas: nuevo, filas });
+              }}
+              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+            >
+              ‹
+            </button>
+            <span className="flex-1 text-center text-gray-700 font-medium py-3 text-base">
+              {pregunta.numFilas || 1}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const nuevo = Math.min((pregunta.numFilas || 1) + 1, 50);
+                if (nuevo > 50) {
+                  alert("El número máximo permitido es 50");
+                  return;
+                }
+                const filas = Array.from({ length: nuevo }, (_, i) => {
+                  if (pregunta.filas[i]) return pregunta.filas[i];
+                  return {
+                    id: crypto.randomUUID(),
+                    celdas: Array.from(
+                      { length: pregunta.numColumnas },
+                      () => ({
+                        id: crypto.randomUUID(),
+                        variable: "",
+                        tipo: "variable" as const,
+                      }),
+                    ),
+                  };
+                });
+                onUpdate({ ...pregunta, numFilas: nuevo, filas });
+              }}
+              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+            >
+              ›
+            </button>
+          </div>
         </div>
+
         <div>
           <label className="text-sm font-semibold text-gray-700 block mb-2">
             Número de columnas:
           </label>
-          <input
-            type="number"
-            placeholder="1"
-            min={1}
-            max={50}
-            onFocus={(e) => e.currentTarget.select()}
-            onClick={(e) => e.currentTarget.select()}
-            value={pregunta.numColumnas === 0 ? "" : pregunta.numColumnas}
-            onChange={(e) => {
-              const nuevo = Math.min(parseInt(e.target.value) || 1, 50);
-              if (parseInt(e.target.value) > 50)
-                alert("El número máximo permitido es 50");
-              const filas = pregunta.filas.map((fila) => ({
-                ...fila,
-                celdas: Array.from(
-                  { length: nuevo },
-                  (_, i) =>
-                    fila.celdas[i] || {
-                      id: crypto.randomUUID(),
-                      variable: "",
-                      tipo: "variable" as const,
-                    },
-                ),
-              }));
-              onUpdate({ ...pregunta, numColumnas: nuevo, filas });
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-gray-700"
-          />
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500">
+            <button
+              type="button"
+              onClick={() => {
+                const nuevo = Math.max((pregunta.numColumnas || 1) - 1, 1);
+                const filas = pregunta.filas.map((fila) => ({
+                  ...fila,
+                  celdas: Array.from(
+                    { length: nuevo },
+                    (_, i) =>
+                      fila.celdas[i] || {
+                        id: crypto.randomUUID(),
+                        variable: "",
+                        tipo: "variable" as const,
+                      },
+                  ),
+                }));
+                onUpdate({ ...pregunta, numColumnas: nuevo, filas });
+              }}
+              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+            >
+              ‹
+            </button>
+            <span className="flex-1 text-center text-gray-700 font-medium py-3 text-base">
+              {pregunta.numColumnas || 1}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const nuevo = Math.min((pregunta.numColumnas || 1) + 1, 50);
+                if (nuevo > 50) {
+                  alert("El número máximo permitido es 50");
+                  return;
+                }
+                const filas = pregunta.filas.map((fila) => ({
+                  ...fila,
+                  celdas: Array.from(
+                    { length: nuevo },
+                    (_, i) =>
+                      fila.celdas[i] || {
+                        id: crypto.randomUUID(),
+                        variable: "",
+                        tipo: "variable" as const,
+                      },
+                  ),
+                }));
+                onUpdate({ ...pregunta, numColumnas: nuevo, filas });
+              }}
+              className="px-4 py-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 text-xl font-bold select-none"
+            >
+              ›
+            </button>
+          </div>
         </div>
       </div>
 
