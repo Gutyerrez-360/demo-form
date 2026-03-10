@@ -122,7 +122,7 @@ function PreguntaTabularComp({
           <label className="text-sm font-bold text-gray-700 block mb-2 text-center w-full">
             Número de filas:
           </label>
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500 w-full max-w-[140px]">
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500 w-full max-w-35">
             <button
               type="button"
               onClick={() => {
@@ -185,7 +185,7 @@ function PreguntaTabularComp({
           <label className="text-sm font-bold text-gray-700 block mb-2 text-center w-full">
             Número de columnas:
           </label>
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500 w-full max-w-[140px]">
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-orange-500 w-full max-w-35">
             <button
               type="button"
               onClick={() => {
