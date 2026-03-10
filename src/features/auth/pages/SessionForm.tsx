@@ -9,6 +9,9 @@ import { verificarCodigo } from "../api/authApi";
 // icons
 import { CircleAlert } from "lucide-react";
 
+// loading animated
+import LoadingOverlay from "../../../shared/components/ui/LoadingOverlay";
+
 export default function SessionForm() {
   const [codigo, setCodigo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,12 +62,7 @@ export default function SessionForm() {
     <div className="min-h-screen bg-[#EEEEF0] flex items-center justify-center p-2 sm:p-6">
       {/* Overlay de loading */}
       {loading && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm">
-          <div className="w-12 h-12 rounded-full border-4 border-gray-200 border-t-gray-900 animate-spin" />
-          <p className="mt-4 text-sm font-medium text-gray-600 tracking-wide">
-            Verificando código...
-          </p>
-        </div>
+        <LoadingOverlay visible={loading} message="Verificando código..." />
       )}
 
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-sm overflow-hidden">
