@@ -21,17 +21,17 @@ export default function SessionForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EEEEF0] flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-sm overflow-hidden">
+    <div className="min-h-screen bg-[#EEEEF0] flex items-center justify-center p-2 sm:p-6">
+      <div className="bg-white w-full max-w-lg rounded-2xl shadow-sm overflow-hidden">
         {/* Imagen ilustrativa */}
-        <div className="w-full bg-[#F5F5F7] flex items-center justify-center py-10 px-6">
-          <div className="w-full h-44 rounded-xl bg-[#E8E8EC] flex items-center justify-center text-gray-400 text-xs tracking-wide">
-            <img src="public\assets\img\home.png" alt="Imagen bienvenida" />
+        <div className="w-full bg-[#F5F5F7] flex items-center justify-center py-6 px-6">
+          <div className="w-full h-30 rounded-xl bg-[#E8E8EC] flex items-center justify-center text-gray-400 text-xs tracking-wide">
+            <img src="/assets/img/home.png" alt="Imagen bienvenida" />
           </div>
         </div>
 
         {/* Contenido */}
-        <div className="px-7 sm:px-10 pt-6 pb-8">
+        <div className="px-7 sm:px-10 pt-15 pb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 leading-snug">
             Ingresa el código de accesso
           </h1>
