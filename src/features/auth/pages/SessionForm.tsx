@@ -1,27 +1,72 @@
+import { useState, useEffect } from "react";
+
+// navegacion
 import { useNavigate } from "react-router";
-import { useState } from "react";
+
+// verificacion del codigo con backend
+import { verificarCodigo } from "../api/authApi";
+
+// icons
+import { CircleAlert } from "lucide-react";
 
 export default function SessionForm() {
   const [codigo, setCodigo] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  const handleVerificar = () => {
+  useEffect(() => {
+    if (localStorage.getItem("access_code")) {
+      navigate("/form/selector", { replace: true });
+    } else {
+      setCheckingSession(false);
+    }
+  }, []);
+
+  if (checkingSession) return null;
+
+  const handleVerificar = async () => {
     if (!codigo.trim()) {
       setError("Por favor ingresa un código.");
       return;
     }
     setError("");
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      await verificarCodigo(codigo);
+      localStorage.setItem("access_code", codigo);
+      navigate("/form/selector", { replace: true });
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (
+        status === 404 ||
+        status === 400 ||
+        status === 401 ||
+        status === 403
+      ) {
+        setError("Código de acceso inválido.");
+      } else {
+        setError("Error al verificar el código. Intenta de nuevo.");
+      }
+    } finally {
       setLoading(false);
-      navigate("/form/selector");
-    }, 1000);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#EEEEF0] flex items-center justify-center p-2 sm:p-6">
+      {/* Overlay de loading */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm">
+          <div className="w-12 h-12 rounded-full border-4 border-gray-200 border-t-gray-900 animate-spin" />
+          <p className="mt-4 text-sm font-medium text-gray-600 tracking-wide">
+            Verificando código...
+          </p>
+        </div>
+      )}
+
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-sm overflow-hidden">
         {/* Imagen ilustrativa */}
         <div className="w-full pt-7 rounded-2xl bg-[#F5F5F7] flex items-center justify-center py-6 px-6">
@@ -33,7 +78,7 @@ export default function SessionForm() {
         {/* Contenido */}
         <div className="px-7 sm:px-10 pt-15 pb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 leading-snug">
-            Ingresa el código de accesso
+            Ingresa el código de acceso
           </h1>
           <p className="text-sm text-gray-500 leading-relaxed mb-5">
             Ingresa tu código para acceder a las herramientas de gestión y
@@ -49,13 +94,18 @@ export default function SessionForm() {
             </label>
             <input
               type="text"
-              placeholder="Ej: Pw66x34"
+              maxLength={6}
+              placeholder="Ej: 639451"
               value={codigo}
               onChange={(e) => {
-                setCodigo(e.target.value);
+                const olnyNumbers = e.target.value
+                  .replace(/\D/g, "")
+                  .slice(0, 6);
+                setCodigo(olnyNumbers);
                 if (error) setError("");
               }}
               onKeyDown={(e) => e.key === "Enter" && handleVerificar()}
+              disabled={loading}
               className={`w-full px-4 py-3 text-sm bg-[#F4F4F6] border rounded-xl outline-none transition-colors placeholder-gray-400
                 ${
                   error
@@ -63,21 +113,22 @@ export default function SessionForm() {
                     : "border-transparent focus:border-gray-400"
                 }`}
             />
-            {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+            <div className="min-h-5 mt-1.5">
+              {error && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <CircleAlert size={13} /> {error}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Botón */}
           <button
             onClick={handleVerificar}
             disabled={loading}
-            className={`w-full py-3.5 rounded-xl text-sm font-semibold tracking-wide transition-all
-              ${
-                loading
-                  ? "bg-gray-700 text-gray-300 cursor-not-allowed"
-                  : "bg-gray-900 hover:bg-black text-white active:scale-[0.98]"
-              }`}
+            className="w-full py-3.5 rounded-xl text-sm font-semibold tracking-wide transition-all bg-gray-900 hover:bg-black text-white active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Verificando..." : "Verificar"}
+            Verificar
           </button>
         </div>
       </div>

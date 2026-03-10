@@ -1,8 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 
 //pages
-import SessionForm from "./features/forms/pages/SessionForm";
-import FormsRouter from "./app/route/formsRoutes";
+import SessionForm from "./features/auth/pages/SessionForm";
+import FormsRouter from "./app/route/FormsRoutes";
+
+// validador ruta protegida para retornar siempre al home sino encuentra el access_code
+import ProtectedRoute from "./app/route/ProtectedRoute";
 
 function App() {
   return (
@@ -11,8 +14,10 @@ function App() {
         <Route>
           {/* Another children routes */}
           <Route index path="/" element={<SessionForm />} />
-          {FormsRouter}
+          <Route element={<ProtectedRoute />}>{FormsRouter}</Route>
         </Route>
+        {/* proximamente */}
+        {/* <Route path="*" element={<NotFoundPage />} /> */}
       </Routes>
     </Router>
   );
