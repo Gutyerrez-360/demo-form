@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { PreguntaOpcionMultiple } from "../../types/forms";
+import type { PreguntaOpcionMultiple } from "../../../../types/forms";
 import { Trash2, Plus, X } from "lucide-react";
 
 //modal component
-import ConfirmDeleteModal from "../notifications/ConfirmDeleteModal";
+import ConfirmDeleteModal from "../../../../shared/components/notifications/ConfirmDeleteModal";
 
 interface PreguntaOpcionMultipleProps {
   pregunta: PreguntaOpcionMultiple;
@@ -85,9 +85,9 @@ function PreguntaOpcionMultipleComp({
       <div className="flex-1 pt-0">
         <label className="pt-0 font-bold">Codificación de la pregunta</label>
         <textarea
-          value={pregunta.descripcion || ""}
+          value={pregunta.codigoPregunta || ""}
           onChange={(e) =>
-            onUpdate({ ...pregunta, descripcion: e.target.value })
+            onUpdate({ ...pregunta, codigoPregunta: e.target.value })
           }
           placeholder="Descripción opcional"
           className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none resize-none h-12 text-gray-700"

@@ -1,21 +1,21 @@
 import { useState } from "react";
-import type { PreguntaCerrada } from "../../types/forms";
+import type { PreguntaAbierta } from "../../../../types/forms";
 import { Trash2 } from "lucide-react";
 
 //modal Component
-import ConfirmDeleteModal from "../notifications/ConfirmDeleteModal";
+import ConfirmDeleteModal from "../../../../shared/components/notifications/ConfirmDeleteModal";
 
-interface PreguntaCerradaProps {
-  pregunta: PreguntaCerrada;
-  onUpdate: (pregunta: PreguntaCerrada) => void;
+interface PreguntaAbiertaProps {
+  pregunta: PreguntaAbierta;
+  onUpdate: (pregunta: PreguntaAbierta) => void;
   onDelete: () => void;
 }
 
-function PreguntaCerradaComp({
+function PreguntaAbiert({
   pregunta,
   onUpdate,
   onDelete,
-}: PreguntaCerradaProps) {
+}: PreguntaAbiertaProps) {
   const [deleteConfig, setDeleteConfig] = useState<{
     isOpen: boolean;
     onConfirm: () => void;
@@ -41,7 +41,7 @@ function PreguntaCerradaComp({
     });
   };
   return (
-    <div className="p-6 bg-white border-2 border-green-200 rounded-xl">
+    <div className="p-6 bg-white border-2 border-gray-200 rounded-xl">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
           <label className="pt-0 font-bold">Titulo de la pregunta</label>
@@ -60,56 +60,30 @@ function PreguntaCerradaComp({
       <div className="flex-1 pt-0">
         <label className="pt-0 font-bold">Codificación de la pregunta</label>
         <textarea
-          value={pregunta.descripcion || ""}
+          value={pregunta.codigoPregunta || ""}
           onChange={(e) =>
-            onUpdate({ ...pregunta, descripcion: e.target.value })
+            onUpdate({ ...pregunta, codigoPregunta: e.target.value })
           }
           placeholder="Deberá colocar el codigo que representa a la pregunta o una descripción, Ej: PRG12_001 ó La finalidad de la pregunta..."
-          className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none resize-none h-12 text-gray-700"
+          className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none h-12 text-gray-700"
         />
       </div>
 
-      <div className="flex flex-col items-start space-y-2">
-        <label className="text-sm font-bold">Respuesta:</label>
-
-        {/* Sí */}
-        <label className="flex items-center gap-2 cursor-pointer font-bold">
-          <input
-            type="radio"
-            name={`pregunta-${pregunta.id}`}
-            value="si"
-            checked={pregunta.respuesta === "si"}
-            onChange={() =>
-              onUpdate({
-                ...pregunta,
-                respuesta: "si",
-              })
-            }
-          />
-          <span>Sí</span>
+      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <label className="text-sm font-semibold text-gray-700 block mb-2">
+          Respuesta:
         </label>
-
-        {/* No */}
-        <label className="flex items-center gap-2 cursor-pointer font-bold">
-          <input
-            type="radio"
-            name={`pregunta-${pregunta.id}`}
-            value="no"
-            checked={pregunta.respuesta === "no"}
-            onChange={() =>
-              onUpdate({
-                ...pregunta,
-                respuesta: "no",
-              })
-            }
-          />
-          <span>No</span>
-        </label>
+        <textarea
+          value={pregunta.respuesta || ""}
+          onChange={(e) => onUpdate({ ...pregunta, respuesta: e.target.value })}
+          placeholder="Este sera un ejemplo de una posible respuesta de la pregunta realizada"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none h-24 text-gray-700"
+        />
       </div>
 
       <div className="mt-2 flex items-center justify-between pt-4">
-        <div className="mt-4 text-xs text-gray-500 font-medium">
-          Tipo: Pregunta Cerrada (Sí/No)
+        <div className="mt-3 text-xs text-gray-500 font-medium">
+          Tipo: Pregunta Abierta
         </div>
         <button
           onClick={(e) => {
@@ -137,4 +111,4 @@ function PreguntaCerradaComp({
   );
 }
 
-export default PreguntaCerradaComp;
+export default PreguntaAbiert;

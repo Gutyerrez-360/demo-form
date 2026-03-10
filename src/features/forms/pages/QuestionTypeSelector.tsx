@@ -1,4 +1,4 @@
-import type { QuestionType } from "../types/forms";
+import type { QuestionType } from "../../../types/forms";
 import { Type, CheckCircle2, List, Grid3x3, X } from "lucide-react";
 
 interface QuestionTypeSelectorProps {

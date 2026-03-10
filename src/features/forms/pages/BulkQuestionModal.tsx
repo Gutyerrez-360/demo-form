@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Type, CheckCircle2 } from "lucide-react";
-import type { QuestionType } from "../types/forms";
+import type { QuestionType } from "../../../types/forms";
 
 interface BulkQuestionModalProps {
   onAdd: (type: QuestionType, count: number) => void;

@@ -23,7 +23,7 @@ export function guardarFormularioBackend(_data: any) {
 export function descargarFormularioExcel(data: any, resetCallback: () => void) {
   // Convertir JSON a hoja Excel
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet([data]); // aquí luego ajustas la estructura
+  const ws = XLSX.utils.json_to_sheet([data]);
   XLSX.utils.book_append_sheet(wb, ws, "Formulario");
 
   // Generar archivo

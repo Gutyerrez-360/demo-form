@@ -1,3 +1,19 @@
+type Option = "formularios" | "secciones" | null;
+
+export interface UserFormData {
+  correo: string;
+  nombre: string;
+  cargo: string;
+  codigo: string;
+}
+
+export interface SelectorModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  mode: Option;
+  onSubmit: (data: UserFormData) => void;
+}
+
 export type QuestionType =
   | "abierta"
   | "cerrada"

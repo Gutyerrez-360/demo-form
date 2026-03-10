@@ -10,6 +10,7 @@ import {
   ChevronRight,
   MoreVertical,
 } from "lucide-react";
+
 import type {
   Pagina,
   Pregunta,
@@ -20,23 +21,23 @@ import type {
   QuestionType,
   OpenGroups,
   OpenSections,
-} from "../types/forms";
-//import interfaces/
+} from "../types/FormTypes";
+
+//import formularios/
 import QuestionTypeSelector from "./QuestionTypeSelector";
 import BulkQuestionModal from "./BulkQuestionModal";
-import PreguntaAbiert from "./questions/PreguntaAbierta";
-import PreguntaCerradaComp from "./questions/PreguntaCerrada";
-import PreguntaOpcionMultipleComp from "./questions/PreguntaOpcionMultiple";
-import PreguntaTabularComp from "./questions/PreguntaTabular";
-
+import PreguntaAbiert from "../components/TipoPreguntas/PreguntaAbierta";
+import PreguntaCerradaComp from "../components/TipoPreguntas/PreguntaCerrada";
+import PreguntaOpcionMultipleComp from "../components/TipoPreguntas/PreguntaOpcionMultiple";
+import PreguntaTabularComp from "../components/TipoPreguntas/PreguntaTabular";
 //components/
-import ConfirmDeleteModal from "./notifications/ConfirmDeleteModal";
+import ConfirmDeleteModal from "../../../shared/components/notifications/ConfirmDeleteModal";
 
 import {
   guardarFormularioBackend,
   //descargarFormularioExcel,
-} from "../utils/formActions";
-import Tooltip from "./notifications/Tooltip";
+} from "../../../utils/formActions";
+import Tooltip from "../../../shared/components/notifications/Tooltip";
 
 function FormBuilder() {
   const [pagina, setPagina] = useState<Pagina>(() => {
@@ -174,7 +175,7 @@ function FormBuilder() {
           id: crypto.randomUUID(),
           tipo: type,
           titulo: `Pregunta ${idx + 1}`,
-          descripcion: "",
+          codigoPregunta: "",
           ...(type === "abierta" && { respuesta: "" }),
           ...(type === "cerrada" && { respuesta: { si: "", no: "" } }),
         }) as any,
@@ -239,7 +240,7 @@ function FormBuilder() {
           id: crypto.randomUUID(),
           tipo: "abierta",
           titulo: "",
-          descripcion: "",
+          codigoPregunta: "",
           respuesta: "",
         } as PreguntaAbierta;
         break;
@@ -249,7 +250,7 @@ function FormBuilder() {
           id: crypto.randomUUID(),
           tipo: "cerrada",
           titulo: "",
-          descripcion: "",
+          codigoPregunta: "",
           respuesta: "si",
         } as PreguntaCerrada;
         break;
@@ -259,7 +260,7 @@ function FormBuilder() {
           id: crypto.randomUUID(),
           tipo: "opcion-multiple",
           titulo: "",
-          descripcion: "",
+          codigoPregunta: "",
           opciones: [{ id: crypto.randomUUID(), texto: "" }],
           respuestaSeleccionada: undefined,
         } as PreguntaOpcionMultiple;
@@ -287,7 +288,7 @@ function FormBuilder() {
           id: crypto.randomUUID(),
           tipo: "tabular",
           titulo: "",
-          descripcion: "",
+          codigoPregunta: "",
           numFilas,
           numColumnas,
           encabezadoColumnas,
@@ -530,15 +531,14 @@ function FormBuilder() {
           {...baseProps}
         />
       );
-    if (pregunta.tipo === "tabular") console.log(pregunta);
-
-    return (
-      <PreguntaTabularComp
-        key={pregunta.id}
-        pregunta={pregunta}
-        {...baseProps}
-      />
-    );
+    if (pregunta.tipo === "tabular")
+      return (
+        <PreguntaTabularComp
+          key={pregunta.id}
+          pregunta={pregunta}
+          {...baseProps}
+        />
+      );
 
     return null;
   };
@@ -557,8 +557,8 @@ function FormBuilder() {
   };
 
   return (
-    <div className="py-12 px-4 flex flex-col items-center justify-center min-w-100">
-      <div className="w-full max-w-300 bg-[#F4F5F7] rounded-2xl p-6 sm:p-10 lg:p-12 shadow-md mx-auto">
+    <div className="py-6 md:py-12 px-2 md:px-4 w-full">
+      <div className="w-full max-w-350 mx-auto bg-[#F4F5F7] rounded-2xl p-4 sm:p-8 lg:p-12 shadow-md">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-6">
           {/* TITULO */}
@@ -632,9 +632,9 @@ function FormBuilder() {
                 Descripción:
               </label>
               <textarea
-                value={pagina.descripcion || ""}
+                value={pagina.codigoPregunta || ""}
                 onChange={(e) =>
-                  setPagina({ ...pagina, descripcion: e.target.value })
+                  setPagina({ ...pagina, codigoPregunta: e.target.value })
                 }
                 placeholder="Descripción del formulario"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none h-20 text-gray-700"
@@ -650,23 +650,24 @@ function FormBuilder() {
               className="bg-[#FFFFFF] rounded-4xl shadow-lg overflow-hidden"
             >
               {/* Header de la sección */}
-              <div className="px-8 py-6 flex justify-between items-center gap-4">
+              <div className="px-4 md:px-8 py-6 flex items-start md:items-center justify-between gap-3">
                 {/* Input nombre sección */}
                 <div className="flex-1 min-w-0">
-                  <label className="text-sm font-bold text-black mb-1">
+                  <label className="text-sm font-bold text-black mb-1 block">
                     Título de la sección
                   </label>
+
                   <input
                     type="text"
                     value={seccion.nombre}
                     placeholder="Agregue un titulo para esta seccion"
                     onChange={(e) => updateSeccion(seccion.id, e.target.value)}
-                    className="w-full text-2xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
+                    className="w-full text-lg md:text-2xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
                   />
                 </div>
 
                 {/* Acciones */}
-                <div className="flex items-center gap-2 shrink-0 pt-5">
+                <div className="flex items-center gap-2 shrink-0 pt-6 whitespace-nowrap">
                   {pagina.secciones.length > 1 && (
                     <button
                       onClick={(e) => {
@@ -677,16 +678,16 @@ function FormBuilder() {
                           () => deleteSeccion(seccion.id),
                         );
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors border-2 bg-[#FFCFCF]"
+                      className="flex items-center gap-2 px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors border-2 bg-[#FFCFCF] text-sm md:text-base"
                     >
                       <Trash2 size={20} />
-                      Eliminar Sección
+                      <span className="hidden sm:inline">Eliminar Sección</span>
                     </button>
                   )}
 
                   <button
                     onClick={() => toggleSection(seccion.id)}
-                    className="ml-2 p-2 hover:bg-blue-200 rounded transition"
+                    className="p-2 hover:bg-blue-200 rounded transition"
                   >
                     {openSections[seccion.id] ? (
                       <ChevronDown size={22} />
@@ -708,73 +709,79 @@ function FormBuilder() {
                       {/* Contenedor principal */}
                       <div className="flex items-center rounded-md overflow-hidden">
                         {/* Input + botón de 3 puntos */}
-                        <div className="flex items-center flex-1">
-                          <div className="w-60">
-                            <label className="text-sm font-bold text-black mb-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center flex-1 gap-2 sm:gap-3">
+                          <div className="w-full sm:w-60">
+                            <label className="text-sm font-bold text-black mb-1 block">
                               Título del grupo
                             </label>
-                            <input
-                              type="text"
-                              value={grupo.nombre}
-                              placeholder="Agregue un titulo para esta seccion"
-                              onChange={(e) =>
-                                updateGrupo(
-                                  seccion.id,
-                                  grupo.id,
-                                  e.target.value,
-                                )
-                              }
-                              className="w-full text-xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none pt"
-                            />
-                          </div>
-                          <div className="relative pt-6">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMenuGrupoAbierto(
-                                  menuGrupoAbierto === grupo.id
-                                    ? null
-                                    : grupo.id,
-                                );
-                              }}
-                              className="p-2 hover:bg-gray-200 transition bg-white rounded-xl"
-                            >
-                              <MoreVertical size={20} />
-                            </button>
-                          </div>
 
-                          {/* Dropdown acciones */}
-                          {menuGrupoAbierto === grupo.id && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-40"
-                                onClick={() => setMenuGrupoAbierto(null)}
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={grupo.nombre}
+                                placeholder="Agregue un titulo para esta seccion"
+                                onChange={(e) =>
+                                  updateGrupo(
+                                    seccion.id,
+                                    grupo.id,
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full text-lg sm:text-xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
                               />
-                              <div className="absolute top-15 mt-1 left-65 rounded-lg shadow-lg z-50">
+
+                              <div className="relative">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    requestDelete(
-                                      "Eliminar Sección",
-                                      `Vas a eliminar la el grupo "${grupo.nombre}". ¿Estás seguro?`,
-                                      () => deleteGrupo(seccion.id, grupo.id),
+                                    setMenuGrupoAbierto(
+                                      menuGrupoAbierto === grupo.id
+                                        ? null
+                                        : grupo.id,
                                     );
-                                    setMenuGrupoAbierto(null);
                                   }}
-                                  className="flex items-center gap-2 px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors border-2 bg-[#FFCFCF]"
+                                  className="p-2 hover:bg-gray-200 transition bg-white rounded-xl"
                                 >
-                                  <Trash2 size={18} />
-                                  Eliminar grupo
+                                  <MoreVertical size={20} />
                                 </button>
+
+                                {/* Dropdown */}
+                                {menuGrupoAbierto === grupo.id && (
+                                  <>
+                                    <div
+                                      className="fixed inset-0 z-40"
+                                      onClick={() => setMenuGrupoAbierto(null)}
+                                    />
+
+                                    <div className="absolute right-0 mt-2 bg-white rounded-lg shadow-lg z-50">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          requestDelete(
+                                            "Eliminar Grupo",
+                                            `Vas a eliminar el grupo "${grupo.nombre}". ¿Estás seguro?`,
+                                            () =>
+                                              deleteGrupo(seccion.id, grupo.id),
+                                          );
+                                          setMenuGrupoAbierto(null);
+                                        }}
+                                        className="flex items-center gap-2 px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors border-2 bg-[#FFCFCF]"
+                                      >
+                                        <Trash2 size={18} />
+                                        Eliminar grupo
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
-                            </>
-                          )}
+                            </div>
+                          </div>
                         </div>
 
                         {/* Chevron al borde derecho */}
                         <button
                           onClick={() => toggleGroup(seccion.id, grupo.id)}
-                          className="ml-2 p-1 hover:bg-gray-200 rounded transition"
+                          className="ml-2 p-1 mt-7 hover:bg-gray-200 rounded transition"
                         >
                           {openGroups[seccion.id]?.[grupo.id] ? (
                             <ChevronDown size={20} />
@@ -786,21 +793,21 @@ function FormBuilder() {
 
                       {/* Contenido colapsable del grupo */}
                       {openGroups[seccion.id]?.[grupo.id] && (
-                        <div className="px-6 pb-6 space-y-2 pt-2">
-                          <div className="space-y-4 mb-6">
+                        <div className="space-y-2 pt-2 w-full px-2 sm:px-0">
+                          <div className="space-y-4 mb-6 w-full">
                             {grupo.preguntas.map((pregunta) =>
                               renderPregunta(pregunta, seccion.id, grupo.id),
                             )}
                           </div>
 
-                          <div className="flex gap-2 flex-wrap">
+                          <div className="flex flex-col sm:flex-row gap-2 w-full">
                             <button
                               onClick={() => {
                                 setActiveSectionId(seccion.id);
                                 setActiveGroupId(grupo.id);
                                 setShowSelector(true);
                               }}
-                              className="flex items-center gap-2 px-4 py-2 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700 transition-colors font-medium w-full sm:w-auto"
                             >
                               <Plus size={18} />
                               Agregar Pregunta
@@ -812,7 +819,7 @@ function FormBuilder() {
                                 setActiveGroupId(grupo.id);
                                 setShowBulkModal(true);
                               }}
-                              className="flex items-center gap-2 px-4 py-2 bg-[#F4F5F7] text-[#000000] rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-[#F4F5F7] text-[#000000] rounded-lg hover:bg-gray-200 transition-colors font-medium w-full sm:w-auto"
                             >
                               <Plus size={18} />
                               Agregar Múltiples
@@ -837,10 +844,10 @@ function FormBuilder() {
           ))}
         </div>
 
-        <div className="flex gap-1">
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
           <button
             onClick={addSeccion}
-            className="flex items-center gap-2 px-6 py-3 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700  transition-colors font-medium shadow-lg"
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
           >
             <Plus size={20} />
             Agregar Sección
@@ -849,7 +856,7 @@ function FormBuilder() {
           <Tooltip message="⚠️ SOLO PARA ENTORNO DE DESARROLLO">
             <button
               onClick={() => setShowJson(!showJson)}
-              className="flex items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium shadow-lg"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
             >
               {showJson ? <EyeOff size={20} /> : <Eye size={20} />}
               {showJson ? "Ocultar JSON" : "Ver JSON"}
@@ -859,8 +866,7 @@ function FormBuilder() {
           <Tooltip message="⚠️ SOLO PARA ENTORNO DE DESARROLLO">
             <button
               onClick={downloadJSON}
-              title="⚠️ Solo para entorno de desarrollo"
-              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-lg"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
             >
               <Download size={20} />
               Descargar JSON
