@@ -97,12 +97,14 @@ export interface Grupo {
 export interface Seccion {
   id: string;
   nombre: string;
+  codigo: string;
   grupos: Grupo[];
 }
 
 export interface Pagina {
   nombre: string;
-  codigoPregunta?: string;
+  codigo: string;
+  descripcion: string;
   secciones: Seccion[];
 }
 

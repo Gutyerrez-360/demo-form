@@ -8,6 +8,7 @@ const formsRouter = (
   <Route path="form">
     <Route path="selector" element={<ActionSelector />} />
     <Route path="builder" element={<FormBuilder />} />
+    <Route path="builder/:id" element={<FormBuilder />} />
   </Route>
 );
 

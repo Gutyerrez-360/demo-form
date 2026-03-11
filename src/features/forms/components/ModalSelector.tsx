@@ -17,7 +17,9 @@ import { getFormularios, getSecciones } from "../service/formsService";
 // componente reutilizable
 import { DropdownList } from "../../../shared/components/ui/DropDownList";
 
-// hook con única responsabilidad: cargar formularios
+// utils
+import { removeBuilders } from "../../../utils/localStorage";
+
 function useFormularios(isOpen: boolean) {
   const [formularios, setFormularios] = useState<ItemLista[]>([]);
   const [loading, setLoading] = useState(false);
@@ -192,6 +194,7 @@ export default function SelectorModal({
 
   const handleCrear = () => {
     navigate("/form/builder");
+    removeBuilders();
     handleClose();
   };
 
@@ -199,6 +202,7 @@ export default function SelectorModal({
     if (!formularioSeleccionado) return;
     onSubmit({ accion: "editar", formulario: formularioSeleccionado });
     handleClose();
+    navigate(`/form/builder/${formularioSeleccionado.id}`);
   };
 
   const handleEditarSeccion = () => {

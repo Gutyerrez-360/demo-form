@@ -9,8 +9,9 @@ import {
   ChevronDown,
   ChevronRight,
   MoreVertical,
+  Copy,
 } from "lucide-react";
-
+// types
 import type {
   Pagina,
   Pregunta,
@@ -21,8 +22,8 @@ import type {
   QuestionType,
   OpenGroups,
   OpenSections,
+  Seccion,
 } from "../types/FormTypes";
-
 //import formularios/
 import QuestionTypeSelector from "./QuestionTypeSelector";
 import BulkQuestionModal from "./BulkQuestionModal";
@@ -30,22 +31,81 @@ import PreguntaAbiert from "../components/TipoPreguntas/PreguntaAbierta";
 import PreguntaCerradaComp from "../components/TipoPreguntas/PreguntaCerrada";
 import PreguntaOpcionMultipleComp from "../components/TipoPreguntas/PreguntaOpcionMultiple";
 import PreguntaTabularComp from "../components/TipoPreguntas/PreguntaTabular";
+
 //components/
 import ConfirmDeleteModal from "../../../shared/components/notifications/ConfirmDeleteModal";
 
+// services
 import {
-  guardarFormularioBackend,
-  //descargarFormularioExcel,
-} from "../../../utils/formActions";
+  obtenerFormularioPorId,
+  guardarFormulario,
+} from "../service/formsService";
+
+// utils
+import { removeBuilderData } from "../../../utils/localStorage";
+import { copyToClipboard } from "../../../utils/copyToClipboard";
+
+// notificaciones
 import Tooltip from "../../../shared/components/notifications/Tooltip";
+import { toast } from "../../../shared/components/notifications/toast";
+
+// captura de id por parametros
+import { useParams } from "react-router";
+import LoadingOverlay from "../../../shared/components/ui/LoadingOverlay";
 
 function FormBuilder() {
+  const { id } = useParams<{ id?: string }>();
+  const [showSelector, setShowSelector] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [openSections, setOpenSections] = useState<OpenSections>({});
+  const [openGroups, setOpenGroups] = useState<OpenGroups>({});
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const [showJson, setShowJson] = useState(false);
+  const [menuGrupoAbierto, setMenuGrupoAbierto] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [activeSectionOpen, setActiveSectionOpen] = useState<string | null>(
+    () => localStorage.getItem("form-builder-open-section"),
+  );
+
+  const [activeGroupOpen, setActiveGroupOpen] = useState<string | null>(() =>
+    localStorage.getItem("form-builder-open-group"),
+  );
+
+  // Si viene con id, limpia el localStorage ANTES de que useState lo lea
+  if (id) {
+    removeBuilderData();
+  }
+
   const [pagina, setPagina] = useState<Pagina>(() => {
+    // Si hay id, arranca con el estado vacío seguro (el useEffect lo reemplazará)
+    if (id) {
+      return {
+        nombre: "",
+        codigo: "",
+        descripcion: "",
+        secciones: [
+          {
+            id: crypto.randomUUID(),
+            nombre: "Sección 1",
+            grupos: [
+              {
+                id: crypto.randomUUID(),
+                nombre: "Grupo 1",
+                preguntas: [],
+              },
+            ],
+          },
+        ],
+      };
+    }
+
     const saved = localStorage.getItem("form-builder-data");
     return saved
       ? JSON.parse(saved)
       : {
-          nombre: "Mi Formulario",
+          nombre: "",
+          codigo: "",
           descripcion: "",
           secciones: [
             {
@@ -62,6 +122,24 @@ function FormBuilder() {
           ],
         };
   });
+
+  useEffect(() => {
+    if (!id) return;
+
+    const cargarFormulario = async () => {
+      try {
+        const formulario = await obtenerFormularioPorId({ id: id });
+        localStorage.setItem("form-builder-data", JSON.stringify(formulario));
+        setPagina(formulario.metadata);
+        toast.success("Informacion obtenida exitosamente");
+      } catch (error) {
+        toast.error("Error al cargar el formulario", `${error}`);
+      }
+    };
+
+    cargarFormulario();
+  }, [id]);
+
   const [deleteConfig, setDeleteConfig] = useState<{
     isOpen: boolean;
     onConfirm: () => void;
@@ -73,16 +151,6 @@ function FormBuilder() {
     title: "",
     message: "",
   });
-  const [activeSectionOpen, setActiveSectionOpen] = useState<string | null>(
-    () => localStorage.getItem("form-builder-open-section"),
-  );
-
-  const [activeGroupOpen, setActiveGroupOpen] = useState<string | null>(() =>
-    localStorage.getItem("form-builder-open-group"),
-  );
-
-  const [openSections, setOpenSections] = useState<OpenSections>({});
-  const [openGroups, setOpenGroups] = useState<OpenGroups>({});
 
   const toggleSection = (id: string) => {
     const newValue = activeSectionOpen === id ? null : id;
@@ -119,22 +187,16 @@ function FormBuilder() {
     }
   }, [activeGroupOpen]);
 
-  const [showSelector, setShowSelector] = useState(false);
-  const [showBulkModal, setShowBulkModal] = useState(false);
-  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
-  const [showJson, setShowJson] = useState(false);
-
-  const [menuGrupoAbierto, setMenuGrupoAbierto] = useState<string | null>(null);
-
   const addSeccion = () => {
+    const numero = pagina.secciones.length + 1;
     setPagina({
       ...pagina,
       secciones: [
         ...pagina.secciones,
         {
           id: crypto.randomUUID(),
-          nombre: `Sección ${pagina.secciones.length + 1}`,
+          codigo: `SEC-00${numero}`,
+          nombre: `Sección ${numero}`,
           grupos: [],
         },
       ],
@@ -266,7 +328,7 @@ function FormBuilder() {
         } as PreguntaOpcionMultiple;
         break;
 
-      case "tabular":
+      case "tabular": {
         const numFilas = 3;
         const numColumnas = 3;
 
@@ -295,6 +357,7 @@ function FormBuilder() {
           filas,
         } as PreguntaTabular;
         break;
+      }
 
       default:
         throw new Error("Tipo de pregunta no válido");
@@ -433,11 +496,11 @@ function FormBuilder() {
     });
   };
 
-  const updateSeccion = (id: string, nombre: string) => {
+  const updateSeccion = (id: string, field: keyof Seccion, value: string) => {
     setPagina({
       ...pagina,
       secciones: pagina.secciones.map((s) =>
-        s.id === id ? { ...s, nombre } : s,
+        s.id === id ? { ...s, [field]: value } : s,
       ),
     });
   };
@@ -459,6 +522,7 @@ function FormBuilder() {
     });
   };
 
+  // esta funcion no debe estar en la version final
   const generateJSON = () => {
     const paginaCorregida = structuredClone(pagina);
 
@@ -476,6 +540,7 @@ function FormBuilder() {
     return JSON.stringify(paginaCorregida, null, 2);
   };
 
+  // esta funcion no debe estar en la version final
   const downloadJSON = () => {
     const jsonData = generateJSON();
     const blob = new Blob([jsonData], { type: "application/json" });
@@ -556,6 +621,21 @@ function FormBuilder() {
     });
   };
 
+  const handleProcesar = async () => {
+    setLoading(true);
+
+    const exito = id
+      ? /*await actualizarFormulario(id, pagina)*/
+        console.warn("actualizacion")
+      : await guardarFormulario(pagina);
+
+    if (exito) {
+      setTimeout(() => window.location.reload(), 1200);
+    } else {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="py-6 md:py-12 px-2 md:px-4 w-full">
       <div className="w-full max-w-350 mx-auto bg-[#F4F5F7] rounded-2xl p-4 sm:p-8 lg:p-12 shadow-md">
@@ -566,51 +646,60 @@ function FormBuilder() {
             Constructor de Formularios
           </h1>
 
-          {/* BOTONES */}
+          {/* lazy animation */}
+          <LoadingOverlay visible={loading} message="Guardando formulario..." />
+
+          {/* Botón guardar */}
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Guardar */}
             <button
-              onClick={() => guardarFormularioBackend(pagina)}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#FFFFFF] hover:bg-gray-400 text-black rounded-lg font-medium transition"
+              onClick={handleProcesar}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#FFFFFF] hover:bg-gray-400 text-black rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Bookmark size={18} />
-              Guardar formulario
+              {id ? "Actualizar formulario" : "Guardar formulario"}
             </button>
-
-            {/* Descargar */}
-            {/*<button
-              onClick={() =>
-                descargarFormularioExcel(pagina, () =>
-                  setPagina({
-                    nombre: "Mi Formulario",
-                    descripcion: "",
-                    secciones: [
-                      {
-                        id: crypto.randomUUID(),
-                        nombre: "Sección 1",
-                        grupos: [
-                          {
-                            id: crypto.randomUUID(),
-                            nombre: "Grupo 1",
-                            preguntas: [],
-                          },
-                        ],
-                      },
-                    ],
-                  }),
-                )
-              }
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0A0D12] hover:bg-green-700 text-white rounded-lg font-medium transition"
-            >
-              <ArrowDownToLine size={18} />
-              Descargar formulario
-            </button>
-             */}
           </div>
         </div>
         <div className="bg-white rounded-4xl shadow-xl overflow-hidden mb-8">
           <div className=" px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full"></div>
           <div className="p-8 space-y-4">
+            <div>
+              <div className="flex items-start gap-1 mb-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Código del formulario:
+                </label>
+                <span className="text-red-500 text-sm">*</span>
+              </div>
+
+              <div className="flex items-center gap-2 w-fit">
+                <input
+                  type="text"
+                  value={pagina.codigo || ""}
+                  onChange={(e) =>
+                    setPagina({ ...pagina, codigo: e.target.value })
+                  }
+                  placeholder="Ej: FORM-001"
+                  className="w-44 px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm font-semibold text-gray-900"
+                />
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const success = await copyToClipboard(pagina.codigo || "");
+                    if (success)
+                      toast.success(
+                        "Copiado",
+                        "Código del formulario copiado.",
+                      );
+                    else toast.error("Error", "No se pudo copiar.");
+                  }}
+                  className="p-2 rounded-lg border-2 border-gray-300 text-[#075AC7]  hover:bg-[#E8F2FF] transition-colors"
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+            </div>
             <div>
               <div className="flex items-start gap-1 mb-2">
                 <label className="text-sm font-semibold text-gray-700">
@@ -632,9 +721,9 @@ function FormBuilder() {
                 Descripción:
               </label>
               <textarea
-                value={pagina.codigoPregunta || ""}
+                value={pagina.descripcion || ""}
                 onChange={(e) =>
-                  setPagina({ ...pagina, codigoPregunta: e.target.value })
+                  setPagina({ ...pagina, descripcion: e.target.value })
                 }
                 placeholder="Descripción del formulario"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none h-20 text-gray-700"
@@ -650,7 +739,7 @@ function FormBuilder() {
               className="bg-[#FFFFFF] rounded-4xl shadow-lg overflow-hidden"
             >
               {/* Header de la sección */}
-              <div className="px-4 md:px-8 py-6 flex items-start md:items-center justify-between gap-3">
+              <div className="px-4 md:px-8 py-6 flex items-start justify-between gap-3">
                 {/* Input nombre sección */}
                 <div className="flex-1 min-w-0">
                   <label className="text-sm font-bold text-black mb-1 block">
@@ -661,13 +750,48 @@ function FormBuilder() {
                     type="text"
                     value={seccion.nombre}
                     placeholder="Agregue un titulo para esta seccion"
-                    onChange={(e) => updateSeccion(seccion.id, e.target.value)}
+                    onChange={(e) =>
+                      updateSeccion(seccion.id, "nombre", e.target.value)
+                    }
                     className="w-full text-lg md:text-2xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
                   />
+                  <label className="text-sm font-bold text-black mt-2 mb-1 block">
+                    Código de la sección
+                  </label>
+
+                  <div className="flex items-center gap-2 w-fit">
+                    <input
+                      type="text"
+                      value={seccion.codigo || ""}
+                      placeholder="Ej: SEC-001"
+                      onChange={(e) =>
+                        updateSeccion(seccion.id, "codigo", e.target.value)
+                      }
+                      className="w-44 text-sm text-gray-700 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const success = await copyToClipboard(
+                          seccion.codigo || "",
+                        );
+                        if (success)
+                          toast.success(
+                            "Copiado",
+                            "Código de sección copiado.",
+                          );
+                        else toast.error("Error", "No se pudo copiar.");
+                      }}
+                      className="p-2 rounded-lg border-2 border-gray-300 text-[#075AC7]  hover:bg-[#E8F2FF] transition-colors"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Acciones */}
-                <div className="flex items-center gap-2 shrink-0 pt-6 whitespace-nowrap">
+                <div className="flex items-center gap-2 shrink-0 mt-7 whitespace-nowrap">
                   {pagina.secciones.length > 1 && (
                     <button
                       onClick={(e) => {

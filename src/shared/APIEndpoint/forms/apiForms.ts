@@ -2,6 +2,7 @@ const API_ROUTES_FORM = {
   // Formularios completos
   FORMULARIOS: {
     BASE: "/forms",
+    GET_BY_ID: (id: string) => `/forms/${id}`,
   },
   // Secciones independientes
   SECCIONES: {
