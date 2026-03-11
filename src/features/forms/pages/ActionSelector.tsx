@@ -3,8 +3,82 @@ import { FileText, FilePen } from "lucide-react";
 import SelectorModal from "../components/ModalSelector";
 import type { SubmitData } from "../types/FormTypes";
 
+// S — tipos y constantes locales
 type Option = "formularios" | "secciones" | null;
 
+interface ActionOption {
+  value: "formularios" | "secciones";
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  activeBorder: string;
+}
+
+const ACTION_OPTIONS: ActionOption[] = [
+  {
+    value: "formularios",
+    label: "Administración de Formularios",
+    description:
+      "Permite crear y modificar la estructura general de los formularios.",
+    icon: FileText,
+    activeBorder: "border-gray-500",
+  },
+  {
+    value: "secciones",
+    label: "Administración de Contenido de Secciones",
+    description:
+      "Permite definir el contenido que tendrá cada sección del formulario.",
+    icon: FilePen,
+    activeBorder: "border-gray-800",
+  },
+];
+
+// sub-componente con única responsabilidad: renderizar una opción
+// agregar opciones sin modificar ActionOptionCard
+interface ActionOptionCardProps {
+  option: ActionOption;
+  isSelected: boolean;
+  onSelect: (value: "formularios" | "secciones") => void;
+}
+
+function ActionOptionCard({
+  option,
+  isSelected,
+  onSelect,
+}: ActionOptionCardProps) {
+  const Icon = option.icon;
+
+  return (
+    <div
+      onClick={() => onSelect(option.value)}
+      className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
+        ${
+          isSelected
+            ? `${option.activeBorder} bg-[#F4F5F7]`
+            : "border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-300"
+        }`}
+    >
+      <div
+        className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors
+          ${isSelected ? "bg-blue-100" : "bg-gray-200"}`}
+      >
+        <Icon
+          size={20}
+          className={isSelected ? "text-blue-500" : "text-gray-500"}
+        />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-gray-900">{option.label}</p>
+        <p className="text-xs text-gray-500 mt-0.5 leading-snug">
+          {option.description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Página principal — solo orquesta estado y eventos
+// depende de ActionOptionCard y SelectorModal como abstracciones
 export default function ActionSelector() {
   const [selected, setSelected] = useState<Option>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,74 +106,19 @@ export default function ActionSelector() {
 
         <hr className="my-6 border-gray-200" />
 
-        {/* Options */}
+        {/* Opciones */}
         <div className="flex flex-col gap-3 mb-7">
-          {/* Option 1 */}
-          <div
-            onClick={() => setSelected("formularios")}
-            className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
-              ${
-                selected === "formularios"
-                  ? "border-gray-500 bg-[#F4F5F7]"
-                  : "border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-300"
-              }`}
-          >
-            <div
-              className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors
-              ${selected === "formularios" ? "bg-blue-100" : "bg-gray-200"}`}
-            >
-              <FileText
-                size={20}
-                className={
-                  selected === "formularios" ? "text-blue-500" : "text-gray-500"
-                }
-              />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">
-                Administración de Formularios
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5 leading-snug">
-                Permite crear y modificar la estructura general de los
-                formularios.
-              </p>
-            </div>
-          </div>
-
-          {/* Option 2 */}
-          <div
-            onClick={() => setSelected("secciones")}
-            className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
-              ${
-                selected === "secciones"
-                  ? "border-gray-800 bg-[#F4F5F7]"
-                  : "border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-300"
-              }`}
-          >
-            <div
-              className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors
-              ${selected === "secciones" ? "bg-blue-100" : "bg-gray-200"}`}
-            >
-              <FilePen
-                size={20}
-                className={
-                  selected === "secciones" ? "text-blue-500" : "text-gray-500"
-                }
-              />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">
-                Administración de Contenido de Secciones
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5 leading-snug">
-                Permite definir el contenido que tendrá cada sección del
-                formulario.
-              </p>
-            </div>
-          </div>
+          {ACTION_OPTIONS.map((option) => (
+            <ActionOptionCard
+              key={option.value}
+              option={option}
+              isSelected={selected === option.value}
+              onSelect={setSelected}
+            />
+          ))}
         </div>
 
-        {/* Button */}
+        {/* Botón continuar */}
         <button
           disabled={!selected}
           onClick={handleContinuar}

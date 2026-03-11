@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 // verificacion del codigo con backend
-import { verificarCodigo } from "../api/authApi";
+import { verificarCodigo } from "../service/authApi";
 
 // icons
 import { CircleAlert } from "lucide-react";
