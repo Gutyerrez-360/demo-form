@@ -75,7 +75,7 @@ function PreguntaOpcionMultipleComp({
               onChange={(e) =>
                 onUpdate({ ...pregunta, titulo: e.target.value })
               }
-              placeholder="Aqui ira la pregunta a realizar"
+              placeholder="Escribe la pregunta que verán los participantes"
               className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none h-12 text-gray-700"
             />
           </div>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FileText, FilePen } from "lucide-react";
 import SelectorModal from "../components/ModalSelector";
-import type { SubmitData } from "../types/FormTypes";
 
 // S — tipos y constantes locales
 type Option = "formularios" | "secciones" | null;
@@ -45,7 +44,7 @@ function ActionOptionCard({
   option,
   isSelected,
   onSelect,
-}: ActionOptionCardProps) {
+}: Readonly<ActionOptionCardProps>) {
   const Icon = option.icon;
 
   return (
@@ -87,8 +86,7 @@ export default function ActionSelector() {
     if (selected) setModalOpen(true);
   };
 
-  const handleSubmit = (data: SubmitData) => {
-    console.log("Submitted:", { mode: selected, ...data });
+  const handleSubmit = () => {
     setModalOpen(false);
   };
 

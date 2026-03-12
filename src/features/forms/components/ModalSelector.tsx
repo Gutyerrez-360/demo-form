@@ -5,23 +5,28 @@ import { useNavigate } from "react-router";
 // types
 import type {
   SelectorModalProps,
-  ItemLista,
   ModalActionsSeccionesProps,
   ModalActionsFormulariosProps,
   ModalHeaderProps,
 } from "../types/FormTypes";
+import type { ListItem } from "../../../shared/components/ui/DropDownList";
 
 // servicios reales
-import { getFormularios, getSecciones } from "../service/formsService";
+import {
+  checkoutSeccion,
+  getFormularios,
+  getSecciones,
+} from "../service/formsService";
 
 // componente reutilizable
 import { DropdownList } from "../../../shared/components/ui/DropDownList";
+import { toast } from "../../../shared/components/notifications/toast";
 
 // utils
 import { removeBuilders } from "../../../utils/localStorage";
 
 function useFormularios(isOpen: boolean) {
-  const [formularios, setFormularios] = useState<ItemLista[]>([]);
+  const [formularios, setFormularios] = useState<ListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,7 +60,7 @@ function useSecciones(
   formularioId: string | null,
   mode: "formularios" | "secciones" | null,
 ) {
-  const [secciones, setSecciones] = useState<ItemLista[]>([]);
+  const [secciones, setSecciones] = useState<ListItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -143,7 +148,7 @@ function ModalActionsSecciones({
   hayFormulario,
   haySeccion,
   onEditarSeccion,
-}: ModalActionsSeccionesProps) {
+}: Readonly<ModalActionsSeccionesProps>) {
   const habilitado = hayFormulario && haySeccion;
 
   return (
@@ -157,7 +162,7 @@ function ModalActionsSecciones({
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
         }`}
     >
-      Editar sección
+      Editar Sección
     </button>
   );
 }
@@ -170,9 +175,9 @@ export default function SelectorModal({
   onSubmit,
 }: SelectorModalProps) {
   const [formularioSeleccionado, setFormularioSeleccionado] =
-    useState<ItemLista | null>(null);
+    useState<ListItem | null>(null);
   const [seccionSeleccionada, setSeccionSeleccionada] =
-    useState<ItemLista | null>(null);
+    useState<ListItem | null>(null);
   const [openFormList, setOpenFormList] = useState(false);
   const [openSecList, setOpenSecList] = useState(false);
 
@@ -205,14 +210,34 @@ export default function SelectorModal({
     navigate(`/form/builder/${formularioSeleccionado.id}`);
   };
 
-  const handleEditarSeccion = () => {
+  const handleEditarSeccion = async () => {
     if (!formularioSeleccionado || !seccionSeleccionada) return;
-    onSubmit({
-      accion: "editar-seccion",
-      formulario: formularioSeleccionado,
-      seccion: seccionSeleccionada,
-    });
-    handleClose();
+
+    try {
+      const { disponible, mensaje } = await checkoutSeccion(
+        seccionSeleccionada.id,
+      );
+
+      if (!disponible) {
+        toast.error(
+          "Sección no disponible",
+          mensaje ?? "La sección ya está en edición.",
+        );
+        return;
+      }
+
+      onSubmit({
+        accion: "editar-seccion",
+        formulario: formularioSeleccionado,
+        seccion: seccionSeleccionada,
+      });
+      handleClose();
+      navigate(
+        `/form/editSection/${formularioSeleccionado.id}/${seccionSeleccionada.id}`,
+      );
+    } catch (error) {
+      toast.error("Error", "No se pudo verificar el estado de la sección.");
+    }
   };
 
   if (!isOpen) return null;

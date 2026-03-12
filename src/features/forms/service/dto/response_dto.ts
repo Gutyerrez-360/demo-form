@@ -14,4 +14,5 @@ export interface FormJsonResponse {
   idFormulario: number;
   nombre: string;
   metadata: any;
+  descripcion?: string;
 }

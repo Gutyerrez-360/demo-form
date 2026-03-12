@@ -7,7 +7,10 @@ const API_ROUTES_FORM = {
   // Secciones independientes
   SECCIONES: {
     BASE: "/secciones",
-    SECCIONES: (id: string) => `/sections?idFormulario=${id}`,
+    SECCIONES: (id: string) => `/sections/${id}`,
+    SECCIONES_BY_FORM_ID: (id: string) => `/sections?idFormulario=${id}`,
+    CHECKOUT: (id: string) => `/sections/${id}/checkout`,
+    SECCIONES_UPDATE_SECTION: (id: string) => `/sections/${id}`,
   },
   AUTH: {
     LOGIN: (codigo: string) => `/access-codes/validate?codigo=${codigo}`,

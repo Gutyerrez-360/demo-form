@@ -1,3 +1,24 @@
+// Seccion de los type las paginas
+export type ItemLista = { id: string; nombre: string; codigo?: string };
+
+export type SubmitData =
+  | { accion: "editar"; formulario: ItemLista }
+  | { accion: "editar-seccion"; formulario: ItemLista; seccion: ItemLista };
+
+export type SelectorModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  mode: "formularios" | "secciones" | null;
+  onSubmit: (data: SubmitData) => void;
+};
+
+export interface UserFormData {
+  correo: string;
+  nombre: string;
+  cargo: string;
+  codigo: string;
+}
+
 export type QuestionType =
   | "abierta"
   | "cerrada"
@@ -42,6 +63,8 @@ export interface PreguntaAbierta {
   tipo: "abierta";
   codigoPregunta?: string;
   respuesta?: string;
+  incluirSubpreguntas?: boolean;
+  subpreguntas?: string[];
 }
 
 export interface PreguntaCerrada {
@@ -76,12 +99,14 @@ export interface Grupo {
 export interface Seccion {
   id: string;
   nombre: string;
+  codigo: string;
   grupos: Grupo[];
 }
 
 export interface Pagina {
   nombre: string;
-  codigoPregunta?: string;
+  codigo: string;
+  descripcion: string;
   secciones: Seccion[];
 }
 

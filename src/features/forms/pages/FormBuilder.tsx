@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import {
   Plus,
   Download,
@@ -23,7 +23,8 @@ import type {
   OpenGroups,
   OpenSections,
   Seccion,
-} from "../types/FormTypes";
+} from "../../../types/forms";
+
 //import formularios/
 import QuestionTypeSelector from "./QuestionTypeSelector";
 import BulkQuestionModal from "./BulkQuestionModal";
@@ -39,6 +40,9 @@ import ConfirmDeleteModal from "../../../shared/components/notifications/Confirm
 import {
   obtenerFormularioPorId,
   guardarFormulario,
+  actualizarFormulario,
+  obtenerSeccionPorId,
+  actualizarSeccion,
 } from "../service/formsService";
 
 // utils
@@ -50,11 +54,12 @@ import Tooltip from "../../../shared/components/notifications/Tooltip";
 import { toast } from "../../../shared/components/notifications/toast";
 
 // captura de id por parametros
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import LoadingOverlay from "../../../shared/components/ui/LoadingOverlay";
 
 function FormBuilder() {
-  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+  const { id, sectionId } = useParams<{ id?: string; sectionId?: string }>();
   const [showSelector, setShowSelector] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [openSections, setOpenSections] = useState<OpenSections>({});
@@ -67,7 +72,19 @@ function FormBuilder() {
   const [activeSectionOpen, setActiveSectionOpen] = useState<string | null>(
     () => localStorage.getItem("form-builder-open-section"),
   );
-
+  const [errors, setErrors] = useState({
+    codigo: false,
+    nombre: false,
+  });
+  const [sectionErrors, setSectionErrors] = useState<
+    Record<
+      string,
+      {
+        nombre?: boolean;
+        codigo?: boolean;
+      }
+    >
+  >({});
   const [activeGroupOpen, setActiveGroupOpen] = useState<string | null>(() =>
     localStorage.getItem("form-builder-open-group"),
   );
@@ -87,6 +104,7 @@ function FormBuilder() {
         secciones: [
           {
             id: crypto.randomUUID(),
+            codigo: "",
             nombre: "Sección 1",
             grupos: [
               {
@@ -127,18 +145,27 @@ function FormBuilder() {
     if (!id) return;
 
     const cargarFormulario = async () => {
+      let respuesta = "";
       try {
-        const formulario = await obtenerFormularioPorId({ id: id });
-        localStorage.setItem("form-builder-data", JSON.stringify(formulario));
-        setPagina(formulario.metadata);
-        toast.success("Informacion obtenida exitosamente");
+        if (sectionId) {
+          const pagina = await obtenerSeccionPorId(sectionId);
+          localStorage.setItem("form-builder-data", JSON.stringify(pagina));
+          setPagina(pagina);
+          respuesta = "Información de la sección obtenida exitosamente";
+        } else {
+          const formulario = await obtenerFormularioPorId({ id });
+          localStorage.setItem("form-builder-data", JSON.stringify(formulario));
+          respuesta = "Información del formulario obtenida exitosamente";
+          setPagina(formulario.metadata);
+        }
+        toast.success(respuesta);
       } catch (error) {
         toast.error("Error al cargar el formulario", `${error}`);
       }
     };
 
     cargarFormulario();
-  }, [id]);
+  }, [id, sectionId]);
 
   const [deleteConfig, setDeleteConfig] = useState<{
     isOpen: boolean;
@@ -203,14 +230,14 @@ function FormBuilder() {
     });
   };
 
-  const deleteSeccion = (seccionId: string) => {
-    if (pagina.secciones.length > 1) {
-      setPagina({
-        ...pagina,
-        secciones: pagina.secciones.filter((s) => s.id !== seccionId),
-      });
-    }
-  };
+  // const deleteSeccion = (seccionId: string) => {
+  //   if (pagina.secciones.length > 1) {
+  //     setPagina({
+  //       ...pagina,
+  //       secciones: pagina.secciones.filter((s) => s.id !== seccionId),
+  //     });
+  //   }
+  // };
 
   const deleteGrupo = (seccionId: string, grupoId: string) => {
     setPagina((prev) => ({
@@ -243,17 +270,17 @@ function FormBuilder() {
         }) as any,
     );
 
-    setPagina({
-      ...pagina,
-      secciones: pagina.secciones.map((sec) => {
+    setPagina((prev) => ({
+      ...prev,
+      secciones: prev.secciones.map((sec) => {
         if (sec.id === activeSectionId) {
           return {
             ...sec,
-            grupos: sec.grupos.map((grp) => {
+            grupos: (sec.grupos ?? []).map((grp) => {
               if (grp.id === activeGroupId) {
                 return {
                   ...grp,
-                  preguntas: [...grp.preguntas, ...newPreguntas],
+                  preguntas: [...(grp.preguntas ?? []), ...newPreguntas],
                 };
               }
               return grp;
@@ -262,7 +289,7 @@ function FormBuilder() {
         }
         return sec;
       }),
-    });
+    }));
 
     setShowBulkModal(false);
   };
@@ -272,13 +299,14 @@ function FormBuilder() {
       ...pagina,
       secciones: pagina.secciones.map((sec) => {
         if (sec.id === seccionId) {
+          const grupos = sec.grupos ?? [];
           return {
             ...sec,
             grupos: [
-              ...sec.grupos,
+              ...grupos,
               {
                 id: crypto.randomUUID(),
-                nombre: `Grupo ${sec.grupos.length + 1}`,
+                nombre: `Grupo ${grupos.length + 1}`,
                 preguntas: [],
               },
             ],
@@ -369,11 +397,11 @@ function FormBuilder() {
         if (sec.id === seccionId) {
           return {
             ...sec,
-            grupos: sec.grupos.map((grp) => {
+            grupos: (sec.grupos ?? []).map((grp) => {
               if (grp.id === grupoId) {
                 return {
                   ...grp,
-                  preguntas: [...grp.preguntas, nuevaPregunta],
+                  preguntas: [...(grp.preguntas ?? []), nuevaPregunta],
                 };
               }
               return grp;
@@ -622,15 +650,61 @@ function FormBuilder() {
   };
 
   const handleProcesar = async () => {
+    if (!sectionId) {
+      const newErrors = {
+        codigo: !pagina.codigo?.trim(),
+        nombre: !pagina.nombre?.trim(),
+      };
+
+      setErrors(newErrors);
+
+      if (newErrors.codigo || newErrors.nombre) {
+        toast.warning(
+          "Campos obligatorios",
+          "Debes completar los campos obligatorios antes de continuar.",
+        );
+        return;
+      }
+      const newSectionErrors: Record<string, any> = {};
+      let hasError = false;
+
+      pagina.secciones.forEach((sec) => {
+        const nombreError = !sec.nombre?.trim();
+        const codigoError = !sec.codigo?.trim();
+
+        if (nombreError || codigoError) {
+          newSectionErrors[sec.id] = {
+            nombre: nombreError,
+            codigo: codigoError,
+          };
+          hasError = true;
+        }
+      });
+
+      setSectionErrors(newSectionErrors);
+
+      if (hasError) {
+        toast.warning(
+          "Secciones incompletas",
+          "Debes completar el título y código de todas las secciones.",
+        );
+        return;
+      }
+    }
     setLoading(true);
 
-    const exito = id
-      ? /*await actualizarFormulario(id, pagina)*/
-        console.warn("actualizacion")
-      : await guardarFormulario(pagina);
+    let exito = false;
+
+    if (sectionId && id) {
+      exito = await actualizarSeccion(sectionId, pagina);
+    } else if (id) {
+      exito = await actualizarFormulario(id, pagina);
+    } else {
+      exito = await guardarFormulario(pagina);
+    }
 
     if (exito) {
-      setTimeout(() => window.location.reload(), 1200);
+      setTimeout(() => navigate("/"), 1200);
     } else {
       setLoading(false);
     }
@@ -657,7 +731,11 @@ function FormBuilder() {
               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#FFFFFF] hover:bg-gray-400 text-black rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Bookmark size={18} />
-              {id ? "Actualizar formulario" : "Guardar formulario"}
+              {sectionId
+                ? "Actualizar Sección"
+                : id
+                  ? "Actualizar Formulario"
+                  : "Guardar Formulario"}
             </button>
           </div>
         </div>
@@ -675,12 +753,19 @@ function FormBuilder() {
               <div className="flex items-center gap-2 w-fit">
                 <input
                   type="text"
-                  value={pagina.codigo || ""}
-                  onChange={(e) =>
-                    setPagina({ ...pagina, codigo: e.target.value })
-                  }
+                  value={pagina?.codigo || ""}
+                  disabled={!!sectionId}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setPagina({ ...pagina, codigo: value });
+
+                    if (value.trim()) {
+                      setErrors((prev) => ({ ...prev, codigo: false }));
+                    }
+                  }}
                   placeholder="Ej: FORM-001"
-                  className="w-44 px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm font-semibold text-gray-900"
+                  className={`w-44 px-3 py-2 border-2 rounded-lg outline-none text-sm font-semibold text-gray-900 ${errors.codigo ? "border-red-400 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-blue-500"}${sectionId ? "bg-gray-300 cursor-not-allowed opacity-35" : ""}`}
                 />
 
                 <button
@@ -699,6 +784,11 @@ function FormBuilder() {
                   <Copy size={16} />
                 </button>
               </div>
+              {!sectionId && errors.codigo && (
+                <p className="text-red-500 text-xs mt-1">
+                  Este campo es obligatorio.
+                </p>
+              )}
             </div>
             <div>
               <div className="flex items-start gap-1 mb-2">
@@ -709,12 +799,25 @@ function FormBuilder() {
               </div>
               <input
                 type="text"
-                value={pagina.nombre}
-                onChange={(e) =>
-                  setPagina({ ...pagina, nombre: e.target.value })
-                }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-lg font-semibold text-gray-900"
+                disabled={!!sectionId}
+                value={pagina?.nombre || ""}
+                placeholder="Encuesta BCR"
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  setPagina({ ...pagina, nombre: value });
+
+                  if (value.trim()) {
+                    setErrors((prev) => ({ ...prev, nombre: false }));
+                  }
+                }}
+                className={`w-full px-4 py-3 border-2 rounded-lg outline-none text-sm font-semibold text-gray-900 ${errors.nombre ? "border-red-400 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-blue-500"} ${sectionId ? "bg-gray-200 cursor-not-allowed opacity-50" : ""}`}
               />
+              {!sectionId && errors.nombre && (
+                <p className="text-red-500 text-xs mt-1">
+                  Este campo es obligatorio.
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-700 block mb-2">
@@ -722,11 +825,12 @@ function FormBuilder() {
               </label>
               <textarea
                 value={pagina.descripcion || ""}
+                disabled={!!sectionId}
                 onChange={(e) =>
                   setPagina({ ...pagina, descripcion: e.target.value })
                 }
                 placeholder="Descripción del formulario"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none h-20 text-gray-700"
+                className={`w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none h-20 text-gray-700 ${sectionId ? "bg-gray-200 cursor-not-allowed opacity-50" : ""}`}
               />
             </div>
           </div>
@@ -734,293 +838,351 @@ function FormBuilder() {
 
         <div className="space-y-8 mb-8">
           {pagina.secciones.map((seccion) => (
-            <div
-              key={seccion.id}
-              className="bg-[#FFFFFF] rounded-4xl shadow-lg overflow-hidden"
-            >
-              {/* Header de la sección */}
-              <div className="px-4 md:px-8 py-6 flex items-start justify-between gap-3">
-                {/* Input nombre sección */}
-                <div className="flex-1 min-w-0">
-                  <label className="text-sm font-bold text-black mb-1 block">
-                    Título de la sección
-                  </label>
+            <Fragment key={seccion.id}>
+              <div
+                key={seccion.id}
+                className="bg-[#FFFFFF] rounded-4xl shadow-lg overflow-hidden"
+              >
+                {/* Header de la sección */}
+                <div className="px-4 md:px-8 py-6 flex items-start justify-between gap-3">
+                  {/* Input nombre sección */}
+                  <div className="flex-1 min-w-0">
+                    <label className="text-sm font-bold text-black mb-1 block">
+                      Título de la sección
+                    </label>
 
-                  <input
-                    type="text"
-                    value={seccion.nombre}
-                    placeholder="Agregue un titulo para esta seccion"
-                    onChange={(e) =>
-                      updateSeccion(seccion.id, "nombre", e.target.value)
-                    }
-                    className="w-full text-lg md:text-2xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
-                  />
-                  <label className="text-sm font-bold text-black mt-2 mb-1 block">
-                    Código de la sección
-                  </label>
-
-                  <div className="flex items-center gap-2 w-fit">
                     <input
                       type="text"
-                      value={seccion.codigo || ""}
-                      placeholder="Ej: SEC-001"
-                      onChange={(e) =>
-                        updateSeccion(seccion.id, "codigo", e.target.value)
-                      }
-                      className="w-44 text-sm text-gray-700 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
-                    />
+                      value={seccion.nombre}
+                      placeholder="Agregue un titulo para esta seccion"
+                      onChange={(e) => {
+                        const value = e.target.value;
 
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const success = await copyToClipboard(
-                          seccion.codigo || "",
-                        );
-                        if (success)
-                          toast.success(
-                            "Copiado",
-                            "Código de sección copiado.",
-                          );
-                        else toast.error("Error", "No se pudo copiar.");
+                        updateSeccion(seccion.id, "nombre", value);
+
+                        if (value.trim()) {
+                          setSectionErrors((prev) => ({
+                            ...prev,
+                            [seccion.id]: {
+                              ...prev[seccion.id],
+                              nombre: false,
+                            },
+                          }));
+                        }
                       }}
-                      className="p-2 rounded-lg border-2 border-gray-300 text-[#075AC7]  hover:bg-[#E8F2FF] transition-colors"
-                    >
-                      <Copy size={16} />
-                    </button>
+                      className={`w-full text-lg md:text-2xl font-bold text-gray-900 rounded-lg px-3 py-2 focus:outline-none ${sectionErrors[seccion.id]?.nombre ? "border border-red-400 bg-red-50" : "bg-[#F4F5F7] border border-[#F4F5F7]"}`}
+                    />
+                    {sectionErrors[seccion.id]?.nombre && (
+                      <p className="text-red-500 text-xs mt-1">
+                        El título de la sección es obligatorio.
+                      </p>
+                    )}
+                    <label className="text-sm font-bold text-black mt-2 mb-1 block">
+                      Código de la sección
+                    </label>
+
+                    <div className="flex items-center gap-2 w-fit">
+                      <input
+                        type="text"
+                        value={seccion.codigo || ""}
+                        placeholder="Ej: SEC-001"
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          updateSeccion(seccion.id, "codigo", value);
+
+                          if (value.trim()) {
+                            setSectionErrors((prev) => ({
+                              ...prev,
+                              [seccion.id]: {
+                                ...prev[seccion.id],
+                                codigo: false,
+                              },
+                            }));
+                          }
+                        }}
+                        className={`w-44 text-sm rounded-lg px-3 py-2 focus:outline-none ${sectionErrors[seccion.id]?.codigo ? "border border-red-400 bg-red-50" : "bg-[#F4F5F7] border border-[#F4F5F7]"}`}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const success = await copyToClipboard(
+                            seccion.codigo || "",
+                          );
+                          if (success)
+                            toast.success(
+                              "Copiado",
+                              "Código de sección copiado.",
+                            );
+                          else toast.error("Error", "No se pudo copiar.");
+                        }}
+                        className="p-2 rounded-lg border-2 border-gray-300 text-[#075AC7]  hover:bg-[#E8F2FF] transition-colors"
+                      >
+                        <Copy size={16} />
+                      </button>
+                    </div>
+                    {sectionErrors[seccion.id]?.codigo && (
+                      <p className="text-red-500 text-xs mt-1">
+                        El código de la sección es obligatorio.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="flex items-center gap-2 shrink-0 mt-7 whitespace-nowrap">
+                    {/* {pagina.secciones.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          requestDelete(
+                            "Eliminar Sección",
+                            `Vas a eliminar la sección "${seccion.nombre}". ¿Estás seguro?`,
+                            () => deleteSeccion(seccion.id),
+                          );
+                        }}
+                        className="flex items-center gap-2 px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors border-2 bg-[#FFCFCF] text-sm md:text-base"
+                      >
+                        <Trash2 size={20} />
+                        <span className="hidden sm:inline">
+                          Eliminar Sección
+                        </span>
+                      </button>
+                    )} */}
+
+                    {id && !sectionId ? (
+                      ""
+                    ) : (
+                      <button
+                        onClick={() => toggleSection(seccion.id)}
+                        className="p-2 hover:bg-blue-200 rounded transition"
+                      >
+                        {openSections[seccion.id] ? (
+                          <ChevronDown size={22} />
+                        ) : (
+                          <ChevronRight size={22} />
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Acciones */}
-                <div className="flex items-center gap-2 shrink-0 mt-7 whitespace-nowrap">
-                  {pagina.secciones.length > 1 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        requestDelete(
-                          "Eliminar Sección",
-                          `Vas a eliminar la sección "${seccion.nombre}". ¿Estás seguro?`,
-                          () => deleteSeccion(seccion.id),
-                        );
-                      }}
-                      className="flex items-center gap-2 px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors border-2 bg-[#FFCFCF] text-sm md:text-base"
-                    >
-                      <Trash2 size={20} />
-                      <span className="hidden sm:inline">Eliminar Sección</span>
-                    </button>
-                  )}
+                {/* Contenido colapsable */}
+                {openSections[seccion.id] && (
+                  <div className="p-8 pt-1">
+                    {(seccion.grupos ?? []).map((grupo) => (
+                      <div
+                        key={grupo.id}
+                        className="bg-[#FFFFFF] rounded-xl mb-4 relative"
+                      >
+                        {/* Contenedor principal */}
+                        <div className="flex items-center rounded-md overflow-hidden">
+                          {/* Input + botón de 3 puntos */}
+                          <div className="flex flex-col sm:flex-row sm:items-center flex-1 gap-2 sm:gap-3">
+                            <div className="w-full sm:w-60">
+                              <label className="text-sm font-bold text-black mb-1 block">
+                                Título del grupo
+                              </label>
 
-                  <button
-                    onClick={() => toggleSection(seccion.id)}
-                    className="p-2 hover:bg-blue-200 rounded transition"
-                  >
-                    {openSections[seccion.id] ? (
-                      <ChevronDown size={22} />
-                    ) : (
-                      <ChevronRight size={22} />
-                    )}
-                  </button>
-                </div>
-              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={grupo.nombre}
+                                  placeholder="Agregue un titulo para esta seccion"
+                                  onChange={(e) =>
+                                    updateGrupo(
+                                      seccion.id,
+                                      grupo.id,
+                                      e.target.value,
+                                    )
+                                  }
+                                  className="w-full text-lg sm:text-xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
+                                />
 
-              {/* Contenido colapsable */}
-              {openSections[seccion.id] && (
-                <div className="p-8 pt-1">
-                  {seccion.grupos.map((grupo) => (
-                    <div
-                      key={grupo.id}
-                      className="bg-[#FFFFFF] rounded-xl mb-4 relative"
-                    >
-                      {/* Contenedor principal */}
-                      <div className="flex items-center rounded-md overflow-hidden">
-                        {/* Input + botón de 3 puntos */}
-                        <div className="flex flex-col sm:flex-row sm:items-center flex-1 gap-2 sm:gap-3">
-                          <div className="w-full sm:w-60">
-                            <label className="text-sm font-bold text-black mb-1 block">
-                              Título del grupo
-                            </label>
+                                <div className="relative">
+                                  <button
+                                    id={`menu-btn-${grupo.id}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMenuGrupoAbierto(
+                                        menuGrupoAbierto === grupo.id
+                                          ? null
+                                          : grupo.id,
+                                      );
+                                    }}
+                                    className="p-2 hover:bg-gray-200 transition bg-white rounded-xl"
+                                  >
+                                    <MoreVertical size={20} />
+                                  </button>
 
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={grupo.nombre}
-                                placeholder="Agregue un titulo para esta seccion"
-                                onChange={(e) =>
-                                  updateGrupo(
-                                    seccion.id,
-                                    grupo.id,
-                                    e.target.value,
-                                  )
-                                }
-                                className="w-full text-lg sm:text-xl font-bold text-gray-900 bg-[#F4F5F7] border border-[#F4F5F7] rounded-lg px-3 py-2 focus:outline-none"
-                              />
-
-                              <div className="relative">
-                                <button
-                                  id={`menu-btn-${grupo.id}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMenuGrupoAbierto(
-                                      menuGrupoAbierto === grupo.id
-                                        ? null
-                                        : grupo.id,
-                                    );
-                                  }}
-                                  className="p-2 hover:bg-gray-200 transition bg-white rounded-xl"
-                                >
-                                  <MoreVertical size={20} />
-                                </button>
-
-                                {/* Dropdown */}
-                                {menuGrupoAbierto === grupo.id && (
-                                  <>
-                                    <div
-                                      className="fixed inset-0 z-40"
-                                      onClick={() => setMenuGrupoAbierto(null)}
-                                    />
-                                    <div
-                                      className="fixed z-50 mt-1 bg-white rounded-lg shadow-xl border border-gray-100"
-                                      style={{
-                                        top: (() => {
-                                          const btn = document.getElementById(
-                                            `menu-btn-${grupo.id}`,
-                                          );
-                                          if (!btn) return 0;
-                                          return (
-                                            btn.getBoundingClientRect().bottom +
-                                            4
-                                          );
-                                        })(),
-                                        right:
-                                          window.innerWidth -
-                                          (() => {
+                                  {/* Dropdown */}
+                                  {menuGrupoAbierto === grupo.id && (
+                                    <>
+                                      <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() =>
+                                          setMenuGrupoAbierto(null)
+                                        }
+                                      />
+                                      <div
+                                        className="fixed z-50 mt-1 bg-white rounded-lg shadow-xl border border-gray-100"
+                                        style={{
+                                          top: (() => {
                                             const btn = document.getElementById(
                                               `menu-btn-${grupo.id}`,
                                             );
                                             if (!btn) return 0;
-                                            return btn.getBoundingClientRect()
-                                              .right;
+                                            return (
+                                              btn.getBoundingClientRect()
+                                                .bottom + 4
+                                            );
                                           })(),
-                                      }}
-                                    >
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          requestDelete(
-                                            "Eliminar Grupo",
-                                            `Vas a eliminar el grupo "${grupo.nombre}". ¿Estás seguro?`,
-                                            () =>
-                                              deleteGrupo(seccion.id, grupo.id),
-                                          );
-                                          setMenuGrupoAbierto(null);
+                                          right:
+                                            window.innerWidth -
+                                            (() => {
+                                              const btn =
+                                                document.getElementById(
+                                                  `menu-btn-${grupo.id}`,
+                                                );
+                                              if (!btn) return 0;
+                                              return btn.getBoundingClientRect()
+                                                .right;
+                                            })(),
                                         }}
-                                        className="flex items-center px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors ml-0 w-full sm:w-auto justify-center border-2 bg-[#FFCFCF]"
                                       >
-                                        <Trash2 size={18} />
-                                        Eliminar grupo
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            requestDelete(
+                                              "Eliminar Grupo",
+                                              `Vas a eliminar el grupo "${grupo.nombre}". ¿Estás seguro?`,
+                                              () =>
+                                                deleteGrupo(
+                                                  seccion.id,
+                                                  grupo.id,
+                                                ),
+                                            );
+                                            setMenuGrupoAbierto(null);
+                                          }}
+                                          className="flex items-center px-3 py-2 text-[#E91C1C] hover:bg-red-200 rounded-lg transition-colors ml-0 w-full sm:w-auto justify-center border-2 bg-[#FFCFCF]"
+                                        >
+                                          <Trash2 size={18} />
+                                          Eliminar grupo
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Chevron al borde derecho */}
-                        <button
-                          onClick={() => toggleGroup(seccion.id, grupo.id)}
-                          className="ml-2 p-1 mt-7 hover:bg-gray-200 rounded transition"
-                        >
-                          {openGroups[seccion.id]?.[grupo.id] ? (
-                            <ChevronDown size={20} />
-                          ) : (
-                            <ChevronRight size={20} />
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Contenido colapsable del grupo */}
-                      {openGroups[seccion.id]?.[grupo.id] && (
-                        <div className="space-y-2 pt-2 w-full px-2 sm:px-0">
-                          <div className="space-y-4 mb-6 w-full">
-                            {grupo.preguntas.map((pregunta) =>
-                              renderPregunta(pregunta, seccion.id, grupo.id),
+                          {/* Chevron al borde derecho */}
+                          <button
+                            onClick={() => toggleGroup(seccion.id, grupo.id)}
+                            className="ml-2 p-1 mt-7 hover:bg-gray-200 rounded transition"
+                          >
+                            {openGroups[seccion.id]?.[grupo.id] ? (
+                              <ChevronDown size={20} />
+                            ) : (
+                              <ChevronRight size={20} />
                             )}
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row gap-2 w-full">
-                            <button
-                              onClick={() => {
-                                setActiveSectionId(seccion.id);
-                                setActiveGroupId(grupo.id);
-                                setShowSelector(true);
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700 transition-colors font-medium w-full sm:w-auto"
-                            >
-                              <Plus size={18} />
-                              Agregar Pregunta
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setActiveSectionId(seccion.id);
-                                setActiveGroupId(grupo.id);
-                                setShowBulkModal(true);
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-[#F4F5F7] text-[#000000] rounded-lg hover:bg-gray-200 transition-colors font-medium w-full sm:w-auto"
-                            >
-                              <Plus size={18} />
-                              Agregar Múltiples
-                            </button>
-                          </div>
+                          </button>
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  <div className="pt-4">
-                    <button
-                      onClick={() => addGrupo(seccion.id)}
-                      className="w-35 py-3 border-2 border-[#F4F5F7] rounded-lg text-[#000000] font-medium bg-[#F4F5F7] hover:bg-gray-200"
-                    >
-                      + Agregar Grupo
-                    </button>
+                        {/* Contenido colapsable del grupo */}
+                        {openGroups[seccion.id]?.[grupo.id] && (
+                          <div className="space-y-2 pt-2 w-full px-2 sm:px-0">
+                            <div className="space-y-4 mb-6 w-full">
+                              {grupo.preguntas.map((pregunta) => (
+                                <Fragment key={pregunta.id}>
+                                  {renderPregunta(
+                                    pregunta,
+                                    seccion.id,
+                                    grupo.id,
+                                  )}
+                                </Fragment>
+                              ))}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-2 w-full">
+                              <button
+                                onClick={() => {
+                                  setActiveSectionId(seccion.id);
+                                  setActiveGroupId(grupo.id);
+                                  setShowSelector(true);
+                                }}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700 transition-colors font-medium w-full sm:w-auto"
+                              >
+                                <Plus size={18} />
+                                Agregar Pregunta
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  setActiveSectionId(seccion.id);
+                                  setActiveGroupId(grupo.id);
+                                  setShowBulkModal(true);
+                                }}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#F4F5F7] text-[#000000] rounded-lg hover:bg-gray-200 transition-colors font-medium w-full sm:w-auto"
+                              >
+                                <Plus size={18} />
+                                Agregar Múltiples
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    <div className="pt-4">
+                      <button
+                        onClick={() => addGrupo(seccion.id)}
+                        className="w-35 py-3 border-2 border-[#F4F5F7] rounded-lg text-[#000000] font-medium bg-[#F4F5F7] hover:bg-gray-200"
+                      >
+                        + Agregar Grupo
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </Fragment>
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 w-full">
-          <button
-            onClick={addSeccion}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
-          >
-            <Plus size={20} />
-            Agregar Sección
-          </button>
-
-          <Tooltip message="⚠️ SOLO PARA ENTORNO DE DESARROLLO">
+        {id && sectionId ? (
+          ""
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <button
-              onClick={() => setShowJson(!showJson)}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
+              onClick={addSeccion}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-[#0A0D12] text-[#FFFFFF] rounded-lg hover:bg-gray-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
             >
-              {showJson ? <EyeOff size={20} /> : <Eye size={20} />}
-              {showJson ? "Ocultar JSON" : "Ver JSON"}
+              <Plus size={20} />
+              Agregar Sección
             </button>
-          </Tooltip>
 
-          <Tooltip message="⚠️ SOLO PARA ENTORNO DE DESARROLLO">
-            <button
-              onClick={downloadJSON}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
-            >
-              <Download size={20} />
-              Descargar JSON
-            </button>
-          </Tooltip>
-        </div>
+            <Tooltip message="⚠️ SOLO PARA ENTORNO DE DESARROLLO">
+              <button
+                onClick={() => setShowJson(!showJson)}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
+              >
+                {showJson ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showJson ? "Ocultar JSON" : "Ver JSON"}
+              </button>
+            </Tooltip>
+
+            <Tooltip message="⚠️ SOLO PARA ENTORNO DE DESARROLLO">
+              <button
+                onClick={downloadJSON}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-lg w-full sm:w-auto"
+              >
+                <Download size={20} />
+                Descargar JSON
+              </button>
+            </Tooltip>
+          </div>
+        )}
 
         {showJson && (
           <div className="bg-white rounded-2xl shadow-xl p-8 animate-fadeIn overflow-hidden">
