@@ -221,7 +221,7 @@ export default function SelectorModal({
       if (!disponible) {
         toast.error(
           "Sección no disponible",
-          mensaje ?? "La sección ya está en edición.",
+          mensaje?.split(".")[0] ?? "La sección ya está en edición.",
         );
         return;
       }

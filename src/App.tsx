@@ -7,6 +7,9 @@ import formsRouter from "./app/route/FormsRoutes";
 // validador ruta protegida para retornar siempre al home sino encuentra el access_code
 import ProtectedRoute from "./app/route/ProtectedRoute";
 
+// header componente
+import MainLayout from "./shared/components/layout/MainLayout";
+
 function App() {
   return (
     <Router>
@@ -14,7 +17,9 @@ function App() {
         <Route>
           {/* Another children routes */}
           <Route index path="/" element={<SessionForm />} />
-          <Route element={<ProtectedRoute />}>{formsRouter}</Route>
+          <Route element={<ProtectedRoute />}>
+            <Route element={<MainLayout />}>{formsRouter}</Route>
+          </Route>
         </Route>
         {/* proximamente */}
         {/* <Route path="*" element={<NotFoundPage />} /> */}

@@ -14,9 +14,10 @@ import LoadingOverlay from "../../../shared/components/ui/LoadingOverlay";
 
 export default function SessionForm() {
   const [codigo, setCodigo] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
@@ -36,11 +37,12 @@ export default function SessionForm() {
     }
     setError("");
     setLoading(true);
+    setTimeout(() => setShowOverlay(true), 70);
 
     try {
       await verificarCodigo(codigo);
       localStorage.setItem("access_code", codigo);
-      navigate("/form/selector", { replace: true });
+      setTimeout(() => navigate("/form/selector", { replace: true }), 700);
     } catch (err: any) {
       const status = err?.response?.status;
       if (
@@ -53,6 +55,7 @@ export default function SessionForm() {
       } else {
         setError("Error al verificar el código. Intenta de nuevo.");
       }
+      setShowOverlay(false);
     } finally {
       setLoading(false);
     }
@@ -61,8 +64,8 @@ export default function SessionForm() {
   return (
     <div className="min-h-screen bg-[#EEEEF0] flex items-center justify-center p-2 sm:p-6">
       {/* Overlay de loading */}
-      {loading && (
-        <LoadingOverlay visible={loading} message="Verificando código..." />
+      {showOverlay && (
+        <LoadingOverlay visible={showOverlay} message="Verificando código..." />
       )}
 
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-sm overflow-hidden">
@@ -74,7 +77,7 @@ export default function SessionForm() {
         </div>
 
         {/* Contenido */}
-        <div className="px-7 sm:px-10 pt-15 pb-6">
+        <div className="px-7 sm:px-10 pt-8 pb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 leading-snug">
             Ingresa el código de acceso
           </h1>

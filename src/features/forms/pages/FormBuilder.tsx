@@ -710,11 +710,24 @@ function FormBuilder() {
     }
   };
 
+  useEffect(() => {
+    if (!sectionId) return;
+
+    window.history.pushState(null, "", window.location.href);
+
+    const handler = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, [sectionId]);
+
   return (
     <div className="py-6 md:py-12 px-2 md:px-4 w-full">
       <div className="w-full max-w-350 mx-auto bg-[#F4F5F7] rounded-2xl p-4 sm:p-8 lg:p-12 shadow-md">
         {/* HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-6 pt-3">
           {/* TITULO */}
           <h1 className="text-3xl font-bold text-gray-900">
             Constructor de Formularios
@@ -765,7 +778,7 @@ function FormBuilder() {
                     }
                   }}
                   placeholder="Ej: FORM-001"
-                  className={`w-44 px-3 py-2 border-2 rounded-lg outline-none text-sm font-semibold text-gray-900 ${errors.codigo ? "border-red-400 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-blue-500"}${sectionId ? "bg-gray-300 cursor-not-allowed opacity-35" : ""}`}
+                  className={`w-44 px-3 py-2 border-2 rounded-lg outline-none text-sm font-semibold text-gray-900 ${errors.codigo ? "border-red-400 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-blue-500"} ${sectionId ? "bg-gray-200 cursor-not-allowed opacity-50" : ""}`}
                 />
 
                 <button

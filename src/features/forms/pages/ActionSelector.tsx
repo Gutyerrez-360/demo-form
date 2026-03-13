@@ -91,7 +91,7 @@ export default function ActionSelector() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#eef0f3] p-6">
+    <div className="min-h-full flex items-center justify-center bg-[#eef0f3] p-6">
       <div className="bg-white rounded-2xl p-10 w-full max-w-xl shadow-lg">
         {/* Header */}
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -123,7 +123,7 @@ export default function ActionSelector() {
           className={`w-full py-3 rounded-xl font-semibold text-sm transition-all
             ${
               selected
-                ? "bg-gray-600 hover:bg-[#0A0D12] text-white shadow-md hover:shadow-lg"
+                ? " bg-[#0A0D12] hover:bg-gray-600 text-white shadow-md hover:shadow-lg"
                 : "bg-gray-400 text-white cursor-not-allowed"
             }`}
         >
