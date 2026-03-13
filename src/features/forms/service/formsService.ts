@@ -186,6 +186,8 @@ export async function obtenerSeccionPorId(sectionId: string): Promise<Pagina> {
     secciones: (data.metadata?.secciones ?? []).map((sec: any) => ({
       ...sec,
       id: sec.id ?? crypto.randomUUID(),
+      codigo: sec.codigo,
+      nombre: sec.nombre,
       grupos: (sec.grupos ?? []).map((grupo: any) => ({
         ...grupo,
         id: grupo.id ?? crypto.randomUUID(),
@@ -241,8 +243,8 @@ export async function actualizarSeccion(
   }
 
   const body = {
-    codigo: jsonForm.codigo,
-    nombre: jsonForm.nombre,
+    codigo: jsonForm.secciones[0].codigo,
+    nombre: jsonForm.secciones[0].nombre,
     metadata: jsonForm.secciones[0],
     enEdicion: false,
   };
