@@ -12,9 +12,6 @@ const API_ROUTES_FORM = {
     CHECKOUT: (id: string) => `/sections/${id}/checkout`,
     SECCIONES_UPDATE_SECTION: (id: string) => `/sections/${id}`,
   },
-  AUTH: {
-    LOGIN: (codigo: string) => `/access-codes/validate?codigo=${codigo}`,
-  },
 } as const;
 
 export default API_ROUTES_FORM;

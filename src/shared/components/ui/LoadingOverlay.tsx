@@ -19,7 +19,7 @@ const LoadingOverlay = memo(
             style={{ animationDuration: "2s", animationDirection: "reverse" }}
           />
           <img
-            src="/assets/logo/logobcr.png"
+            src="/assets/logo/logo.png"
             alt="BCR"
             className="w-20 h-20 object-contain animate-pulse"
             style={{ animationDuration: "1.5s" }}

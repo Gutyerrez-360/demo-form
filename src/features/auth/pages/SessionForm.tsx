@@ -91,7 +91,7 @@ export default function SessionForm() {
           {/* Campo */}
           <div className="mb-5">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              Ingresar código:
+              Ingresar código: Codigo Temporal es: 444451
             </label>
             <input
               type="text"

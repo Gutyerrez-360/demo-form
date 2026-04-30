@@ -7,15 +7,18 @@ interface HeaderProps {
   onLogout?: () => void;
 }
 
-export default function Header({ onLogout }: HeaderProps) {
+export default function Header({ onLogout }: Readonly<HeaderProps>) {
+  // Navegacion
   const navigate = useNavigate();
+
+  // Obtener la ubicacion
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isRoot = location.pathname === "/";
 
   const handleBack = () => {
-    if (window.history.length > 1) {
+    if (globalThis.history.length > 1) {
       navigate(-1);
     } else {
       navigate("/");
@@ -43,16 +46,16 @@ export default function Header({ onLogout }: HeaderProps) {
           )}
           <div className="flex items-center gap-2.5">
             <img
-              src="/assets/logo/logoIconBCR.png"
+              src="/assets/logo/logo.png"
               alt="BCR Logo"
               className="h-9 w-9 object-contain"
             />
             <div className="hidden sm:flex flex-col leading-tight">
               <span className="text-gray-900 text-sm font-bold tracking-wide">
-                Banco Central de Reserva
+                Demo Forms
               </span>
               <span className="text-gray-500 text-xs">
-                Sistema de Gestión de Formularios
+                Sistema Demo de Formularios
               </span>
             </div>
           </div>

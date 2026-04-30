@@ -814,7 +814,7 @@ function FormBuilder() {
                 type="text"
                 disabled={!!sectionId}
                 value={pagina?.nombre || ""}
-                placeholder="Encuesta BCR"
+                placeholder="Ejemplo Encuesta"
                 onChange={(e) => {
                   const value = e.target.value;
 
